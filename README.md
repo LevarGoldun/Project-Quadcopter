@@ -1,2 +1,2 @@
-# Project-Quadcopter2
+# Project-Quadcopter
 Master's project
