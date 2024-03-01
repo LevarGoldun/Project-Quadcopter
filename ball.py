@@ -26,10 +26,16 @@ def controller(model, data):
     vz = data.qvel[2]
     v = np.sqrt(vx ** 2 + vy ** 2 + vz ** 2)  # norma vektoru rychlosti
     c = 0.5
-    #odporove sily v jednotlivych smerech
-    data.qfrc_applied[0] = -c * vx * v
-    data.qfrc_applied[1] = -c * vy * v
-    data.qfrc_applied[2] = -c * vz * v
+
+    #odporove sily v jednotlivych smerech (1. zpusob)
+    #data.qfrc_applied[0] = -c * vx * v
+    #data.qfrc_applied[1] = -c * vy * v
+    #data.qfrc_applied[2] = -c * vz * v
+
+    #odporove sily (2. zpusob)
+    data.xfrc_applied[1][0] = -c * vx * v  #[cislo telesa][smer]
+    data.xfrc_applied[1][1] = -c * vy * v
+    data.xfrc_applied[1][2] = -c * vz * v
 
 def keyboard(window, key, scancode, act, mods):
     if act == glfw.PRESS and key == glfw.KEY_BACKSPACE:
@@ -149,7 +155,7 @@ data.qvel[1] = 0 #pp rychlost y
 data.qvel[2] = 5 #pp rychlost z
 
 #jak vyjadrit odpor prostredi?
-
+#--> viz funkce controller
 
 
 #set the controller
