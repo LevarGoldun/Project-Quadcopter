@@ -1,9 +1,10 @@
 import mujoco as mj
 from mujoco.glfw import glfw
 import numpy as np
+import os
 
-xml_path = 'ball_game.xml' #xml file (assumes this is in the same folder as this file)
-simend = 1000 #simulation time
+xml_path = 'Pendulum_control.xml'  #xml file (assumes this is in the same folder as this file)
+simend = 10 #simulation time
 print_camera_config = 0 #set to 1 to print camera config
                         #this is useful for initializing view of the model)
 
@@ -14,105 +15,59 @@ button_right = False
 lastx = 0
 lasty = 0
 
-vel_x = 2
-vel_z = 4
-
-_overlay = {}
-def add_overlay(gridpos, text1, text2):
-
-    if gridpos not in _overlay:
-        _overlay[gridpos] = ["", ""]
-    _overlay[gridpos][0] += text1 + "\n"
-    _overlay[gridpos][1] += text2 + "\n"
-
-#HINT1: add the overlay here
-def create_overlay(model,data):
-    global vel_x
-    global vel_z
-    topleft = mj.mjtGridPos.mjGRID_TOPLEFT
-    topright = mj.mjtGridPos.mjGRID_TOPRIGHT
-    bottomleft = mj.mjtGridPos.mjGRID_BOTTOMLEFT
-    bottomright = mj.mjtGridPos.mjGRID_BOTTOMRIGHT
-
-    add_overlay(
-        bottomleft,
-        "Restart",'r' ,
-         )
-
-    add_overlay(
-        bottomleft,
-        "Start",'s' ,
-         )
-
-    add_overlay(
-        bottomleft,
-        "Time", '%.2f' % data.time,
-    )
-
-    add_overlay(
-        topleft,
-        "vel x (left/right)", '%.2f' % vel_x,
-    )
-
-    add_overlay(
-        topleft,
-        "vel z (up/down)", '%.2f' % vel_z,
-    )
-
-#HINT2: add the logics for key press here
-def keyboard(window, key, scancode, act, mods):
-    global vel_x
-    global vel_z
-
-
-    if (act == glfw.PRESS and key == glfw.KEY_R):
-        mj.mj_resetData(model, data)
-        mj.mj_forward(model, data)
-
-    if act == glfw.PRESS and key == glfw.KEY_S:
-        #print('Pressed key s')
-
-        vel_x = 2
-        vel_z = 4
-
-        data.qvel[0] = vel_x  # pp rychlost x
-        data.qvel[2] = vel_z  # pp rychlost z
-
-    if act == glfw.PRESS and key == glfw.KEY_UP:
-        vel_z = vel_z + 2
-
-    if act == glfw.PRESS and key == glfw.KEY_DOWN:
-        vel_z = vel_z - 2
-
-    if act == glfw.PRESS and key == glfw.KEY_LEFT:
-        vel_x = vel_x - 2
-
-    if act == glfw.PRESS and key == glfw.KEY_RIGHT:
-        vel_x = vel_x + 2
-
 def init_controller(model,data):
     #initialize the controller here. This function is called once, in the beginning
     pass
 
 def controller(model, data):
     #put the controller here. This function is called inside the simulation.
-    # Force = -c*vx*|v| i + -c*vy*|v| j + -c*vz*|v| k #<-обобщенная сила
-    vx = data.qvel[0]
-    vy = data.qvel[1]
-    vz = data.qvel[2]
-    v = np.sqrt(vx ** 2 + vy ** 2 + vz ** 2)  # norma vektoru rychlosti
-    c = 0.1
 
-    # odporove sily v jednotlivych smerech (1. zpusob)
-    # data.qfrc_applied[0] = -c * vx * v
-    # data.qfrc_applied[1] = -c * vy * v
-    # data.qfrc_applied[2] = -c * vz * v
+    # spring-like position servo:
+    #set_position_servo(1, 10)  #dle .xml souboru position servo je č. 1
+    #data.ctrl[1] = np.pi #pozice
 
-    # odporove sily (2. zpusob)
-    data.xfrc_applied[1][0] = -c * vx * v  # [cislo telesa][smer]
-    data.xfrc_applied[1][1] = -c * vy * v
-    data.xfrc_applied[1][2] = -c * vz * v
+    # speed control:
+    #set_velocity_servo(2, 100)  #dle .xml souboru position servo je č. 2
+    #data.ctrl[2] = 0.5 #rychlost
 
+    # position control:
+    #set_position_servo(1, 100)
+    #set_velocity_servo(2, 10)
+    #data.ctrl[1] = np.pi #pozice
+    #data.ctrl[2] = 0.5 #rychlost
+
+    # torque control:
+    set_torque_servo(0, 1)  #dle .xml souboru position servo je č. 0
+    #data.ctrl[0] = -10*(data.qpos[0] - np.pi) #moment
+    #data.ctrl[0] = -100*(data.qvel[0] - 0.5)
+    data.ctrl[0] = -100*(data.qpos[0] - np.pi) - 10*data.qvel[0]
+
+#-------vic tabulka ve video
+def set_torque_servo(actuator_no, flag):  #P.S. nastavujeme pusobici moment
+    #Torque servo je univerzalni, muze ridit rychlost, polohu, nebo kombinace
+    # T = -Kp*(theta-theta_ref) -->
+    # T = -Kv*(thetadot - thetadot_ref)
+    # T = -Kv*(theta-theta_ref) - Kv * thetadot
+
+    if flag == 0:
+        model.actuator_gainprm[actuator_no, 0] = 0
+    else:
+        model.actuator_gainprm[actuator_no, 0] = 1
+
+def set_position_servo(actuator_no, kp):  #P.S. nastavujeme polohu
+    model.actuator_gainprm[actuator_no, 0] = kp
+    model.actuator_biasprm[actuator_no, 1] = -kp
+
+def set_velocity_servo(actuator_no, kv):  #P.S. nastavujeme rychlost
+    model.actuator_gainprm[actuator_no, 0] = kv
+    model.actuator_biasprm[actuator_no, 2] = -kv
+#-------vic tabulka ve video
+
+
+def keyboard(window, key, scancode, act, mods):
+    if act == glfw.PRESS and key == glfw.KEY_BACKSPACE:
+        mj.mj_resetData(model, data)
+        mj.mj_forward(model, data)
 
 def mouse_button(window, button, act, mods):
     # update button state
@@ -209,12 +164,13 @@ glfw.set_scroll_callback(window, scroll)
 # cam.elevation = -45
 # cam.distance = 2
 # cam.lookat = np.array([0.0, 0.0, 0])
-cam.azimuth = 84.69038085937497 ; cam.elevation = -16.31253662109375 ; cam.distance =  7.5876800784056755
-cam.lookat =np.array([ 1 , 0.0 , 1.0 ])
+cam.azimuth = -90.68741727466428 ; cam.elevation = -2.8073894766455036 ; cam.distance =  5.457557373462702
+cam.lookat =np.array([ 0.0 , 0.0 , 3.0 ])
+
+data.qpos[0] = np.pi/2
 
 #initialize the controller
-init_controller(model, data)
-
+init_controller(model,data)
 
 #set the controller
 mj.set_mjcb_control(controller)
@@ -233,33 +189,15 @@ while not glfw.window_should_close(window):
         window)
     viewport = mj.MjrRect(0, 0, viewport_width, viewport_height)
 
-    #create overlay
-    create_overlay(model,data)
-
     #print camera configuration (help to initialize the view)
     if (print_camera_config==1):
         print('cam.azimuth =',cam.azimuth,';','cam.elevation =',cam.elevation,';','cam.distance = ',cam.distance)
         print('cam.lookat =np.array([',cam.lookat[0],',',cam.lookat[1],',',cam.lookat[2],'])')
 
-
     # Update scene and render
     mj.mjv_updateScene(model, data, opt, None, cam,
                        mj.mjtCatBit.mjCAT_ALL.value, scene)
     mj.mjr_render(viewport, scene, context)
-
-    # overlay items
-    for gridpos, [t1, t2] in _overlay.items():
-
-        mj.mjr_overlay(
-            mj.mjtFontScale.mjFONTSCALE_150,
-            gridpos,
-            viewport,
-            t1,
-            t2,
-            context)
-
-    # clear overlay
-    _overlay.clear()
 
     # swap OpenGL buffers (blocking call due to v-sync)
     glfw.swap_buffers(window)
@@ -268,31 +206,3 @@ while not glfw.window_should_close(window):
     glfw.poll_events()
 
 glfw.terminate()
-
-# overlay code taken from the following source
-# https://github.com/rohanpsingh/mujoco-python-viewer/blob/main/LICENSE
-# BSD 2-Clause License
-#
-# Copyright (c) 2022, Rohan P. Singh
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#
-# 1. Redistributions of source code must retain the above copyright notice, this
-#    list of conditions and the following disclaimer.
-#
-# 2. Redistributions in binary form must reproduce the above copyright notice,
-#    this list of conditions and the following disclaimer in the documentation
-#    and/or other materials provided with the distribution.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

@@ -1,9 +1,10 @@
 import mujoco as mj
 from mujoco.glfw import glfw
 import numpy as np
+from matplotlib import pyplot as plt
 
-xml_path = 'ball.xml' #xml file (assumes this is in the same folder as this file)
-simend = 60 #simulation time
+xml_path = 'manipulator.xml'  #xml file (assumes this is in the same folder as this file)
+simend = 100 #simulation time
 print_camera_config = 0 #set to 1 to print camera config
                         #this is useful for initializing view of the model)
 
@@ -20,22 +21,7 @@ def init_controller(model,data):
 
 def controller(model, data):
     #put the controller here. This function is called inside the simulation.
-    #Force = -c*vx*|v| i + -c*vy*|v| j + -c*vz*|v| k #<-обобщенная сила
-    vx = data.qvel[0]
-    vy = data.qvel[1]
-    vz = data.qvel[2]
-    v = np.sqrt(vx ** 2 + vy ** 2 + vz ** 2)  # norma vektoru rychlosti
-    c = 0.5
-
-    #odporove sily v jednotlivych smerech (1. zpusob)
-    #data.qfrc_applied[0] = -c * vx * v
-    #data.qfrc_applied[1] = -c * vy * v
-    #data.qfrc_applied[2] = -c * vz * v
-
-    #odporove sily (2. zpusob)
-    data.xfrc_applied[1][0] = -c * vx * v  #[cislo telesa][smer]
-    data.xfrc_applied[1][1] = -c * vy * v
-    data.xfrc_applied[1][2] = -c * vz * v
+    pass
 
 def keyboard(window, key, scancode, act, mods):
     if act == glfw.PRESS and key == glfw.KEY_BACKSPACE:
@@ -133,42 +119,91 @@ glfw.set_mouse_button_callback(window, mouse_button)
 glfw.set_scroll_callback(window, scroll)
 
 # Example on how to set camera configuration
-# cam.azimuth = 90
-# cam.elevation = -45
-# cam.distance = 2
-# cam.lookat = np.array([0.0, 0.0, 0])
-cam.azimuth = 78
-cam.elevation = -43
+cam.azimuth = 68
+cam.elevation = -45
 cam.distance = 5
 cam.lookat = np.array([0.0, 0.0, 0.0])
 
 #initialize the controller
-init_controller(model, data)
-
-#pocatecni poloha
-data.qpos[0] = 0  #pp poloha x
-data.qpos[1] = 0  #pp poloha y
-data.qpos[2] = 0.5  #pp poloha z
-
-data.qvel[0] = 2 #pp rychlost x
-data.qvel[1] = 0 #pp rychlost y
-data.qvel[2] = 5 #pp rychlost z
-
-#jak vyjadrit odpor prostredi?
-#--> viz funkce controller
-
+init_controller(model,data)
 
 #set the controller
 mj.set_mjcb_control(controller)
 
+N = 100  # К-во точек (дробление)
+theta1 = np.pi/3
+theta2 = -np.pi/2
+
+# inicializace uhlu
+data.qpos[0] = theta1  # [radian]
+data.qpos[1] = theta2
+
+mj.mj_forward(model, data)
+position_Q = data.site_xpos[0]  #pritup ke koncovemu senzoru
+#print(position_Q)
+r = 0.5
+center = np.array([position_Q[0]-r, position_Q[1]])
+
+phi = np.linspace(0, 2*np.pi, N)
+x_ref = center[0] + r*np.cos(phi)
+y_ref = center[1] + r*np.sin(phi)
+
+x_all = []  #uchovame hodnoty x a y
+y_all = []
+
+i = 0 #index
+time = 0
+dt = 0.001
+
 while not glfw.window_should_close(window):
-    time_prev = data.time
+    time_prev = time
 
-    while (data.time - time_prev < 1.0/60.0):
-        mj.mj_step(model, data)
+    while (time - time_prev < 1.0/60.0):
 
-    if (data.time>=simend):
-        break;
+        # Vypocet jakobianu
+        position_Q = data.site_xpos[0]  #pritup ke koncovemu senzoru
+        jacp = np.zeros((3, 2))  #3 pro x,y,z a 2 pro theta1, theta2
+        mj.mj_jac(model, data, jacp, None, position_Q, 2)
+
+        J = jacp[[0, 1], :]
+
+        # Vypocet inverzniho J
+        Jinv = np.linalg.inv(J)
+
+        # Vypocet dX = Xref (vime) - X (merime)
+        dX = np.array([x_ref[i] - position_Q[0], y_ref[i] - position_Q[1]])
+
+        # Vypocet zmeny uhlu dq = inv(J) * dX
+        dq = Jinv.dot(dX)
+
+        x_all.append(position_Q[0])
+        y_all.append(position_Q[1])
+
+        # Update theta1 and theta2
+        theta1 = theta1 + dq[0]
+        theta2 = theta2 + dq[1]
+
+        data.qpos[0] = theta1
+        data.qpos[1] = theta2
+        mj.mj_forward(model, data)
+        time = time + dt
+        #mj.mj_step(model, data)
+
+    i = i+1
+
+    if (i>=N):
+        plt.figure(1)
+        plt.plot(x_all, y_all, 'bx')
+        plt.plot(x_ref, y_ref, 'r-')
+        plt.ylabel("y")
+        plt.xlabel("x")
+        plt.gca().set_aspect('equal')
+        plt.show(block=False)
+        plt.pause(5)
+        plt.close()
+        break
+    #if (data.time>=simend):
+        #break;
 
     # get framebuffer viewport
     viewport_width, viewport_height = glfw.get_framebuffer_size(

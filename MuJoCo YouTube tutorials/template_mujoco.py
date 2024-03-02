@@ -2,8 +2,8 @@ import mujoco as mj
 from mujoco.glfw import glfw
 import numpy as np
 
-xml_path = 'odvalovani_mice.xml' #xml file (assumes this is in the same folder as this file)
-simend = 5 #simulation time
+xml_path = 'hello.xml'  #xml file (assumes this is in the same folder as this file)
+simend = 50 #simulation time
 print_camera_config = 0 #set to 1 to print camera config
                         #this is useful for initializing view of the model)
 
@@ -123,9 +123,6 @@ glfw.set_scroll_callback(window, scroll)
 # cam.distance = 2
 # cam.lookat = np.array([0.0, 0.0, 0])
 
-data.qvel[0] = 4 #odvalovani
-data.qvel[2] = 10 #rotace kolem y
-
 #initialize the controller
 init_controller(model,data)
 
@@ -150,8 +147,6 @@ while not glfw.window_should_close(window):
     if (print_camera_config==1):
         print('cam.azimuth =',cam.azimuth,';','cam.elevation =',cam.elevation,';','cam.distance = ',cam.distance)
         print('cam.lookat =np.array([',cam.lookat[0],',',cam.lookat[1],',',cam.lookat[2],'])')
-
-    cam.lookat[0] = data.qpos[0] #Камера следит за мячом
 
     # Update scene and render
     mj.mjv_updateScene(model, data, opt, None, cam,

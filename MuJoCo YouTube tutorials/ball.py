@@ -2,8 +2,8 @@ import mujoco as mj
 from mujoco.glfw import glfw
 import numpy as np
 
-xml_path = 'hello.xml' #xml file (assumes this is in the same folder as this file)
-simend = 50 #simulation time
+xml_path = 'ball.xml'  #xml file (assumes this is in the same folder as this file)
+simend = 60 #simulation time
 print_camera_config = 0 #set to 1 to print camera config
                         #this is useful for initializing view of the model)
 
@@ -20,7 +20,22 @@ def init_controller(model,data):
 
 def controller(model, data):
     #put the controller here. This function is called inside the simulation.
-    pass
+    #Force = -c*vx*|v| i + -c*vy*|v| j + -c*vz*|v| k #<-обобщенная сила
+    vx = data.qvel[0]
+    vy = data.qvel[1]
+    vz = data.qvel[2]
+    v = np.sqrt(vx ** 2 + vy ** 2 + vz ** 2)  # norma vektoru rychlosti
+    c = 0.5
+
+    #odporove sily v jednotlivych smerech (1. zpusob)
+    #data.qfrc_applied[0] = -c * vx * v
+    #data.qfrc_applied[1] = -c * vy * v
+    #data.qfrc_applied[2] = -c * vz * v
+
+    #odporove sily (2. zpusob)
+    data.xfrc_applied[1][0] = -c * vx * v  #[cislo telesa][smer]
+    data.xfrc_applied[1][1] = -c * vy * v
+    data.xfrc_applied[1][2] = -c * vz * v
 
 def keyboard(window, key, scancode, act, mods):
     if act == glfw.PRESS and key == glfw.KEY_BACKSPACE:
@@ -122,9 +137,26 @@ glfw.set_scroll_callback(window, scroll)
 # cam.elevation = -45
 # cam.distance = 2
 # cam.lookat = np.array([0.0, 0.0, 0])
+cam.azimuth = 78
+cam.elevation = -43
+cam.distance = 5
+cam.lookat = np.array([0.0, 0.0, 0.0])
 
 #initialize the controller
-init_controller(model,data)
+init_controller(model, data)
+
+#pocatecni poloha
+data.qpos[0] = 0  #pp poloha x
+data.qpos[1] = 0  #pp poloha y
+data.qpos[2] = 0.5  #pp poloha z
+
+data.qvel[0] = 2 #pp rychlost x
+data.qvel[1] = 0 #pp rychlost y
+data.qvel[2] = 5 #pp rychlost z
+
+#jak vyjadrit odpor prostredi?
+#--> viz funkce controller
+
 
 #set the controller
 mj.set_mjcb_control(controller)

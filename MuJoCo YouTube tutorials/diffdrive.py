@@ -1,10 +1,10 @@
 import mujoco as mj
 from mujoco.glfw import glfw
 import numpy as np
-from matplotlib import pyplot as plt
+from scipy.spatial.transform import Rotation as R
 
-xml_path = 'manipulator.xml' #xml file (assumes this is in the same folder as this file)
-simend = 100 #simulation time
+xml_path = 'diffdrive.xml'  #xml file (assumes this is in the same folder as this file)
+simend = 10 #simulation time
 print_camera_config = 0 #set to 1 to print camera config
                         #this is useful for initializing view of the model)
 
@@ -15,8 +15,17 @@ button_right = False
 lastx = 0
 lasty = 0
 
+def quat2euler(quat_mujoco):
+    quat_scipy = np.array([quat_mujoco[3], quat_mujoco[0], quat_mujoco[1], quat_mujoco[2]])
+    r = R.from_quat(quat_scipy)
+    euler = r.as_euler('xyz', degrees=True)
+    return euler
+
+
 def init_controller(model,data):
     #initialize the controller here. This function is called once, in the beginning
+    data.ctrl[0] = 10
+    data.ctrl[1] = 0
     pass
 
 def controller(model, data):
@@ -119,9 +128,9 @@ glfw.set_mouse_button_callback(window, mouse_button)
 glfw.set_scroll_callback(window, scroll)
 
 # Example on how to set camera configuration
-cam.azimuth = 68
-cam.elevation = -45
-cam.distance = 5
+cam.azimuth = 74.0
+cam.elevation = -44
+cam.distance = 8.9
 cam.lookat = np.array([0.0, 0.0, 0.0])
 
 #initialize the controller
@@ -130,80 +139,26 @@ init_controller(model,data)
 #set the controller
 mj.set_mjcb_control(controller)
 
-N = 100  # К-во точек (дробление)
-theta1 = np.pi/3
-theta2 = -np.pi/2
-
-# inicializace uhlu
-data.qpos[0] = theta1  # [radian]
-data.qpos[1] = theta2
-
-mj.mj_forward(model, data)
-position_Q = data.site_xpos[0]  #pritup ke koncovemu senzoru
-#print(position_Q)
-r = 0.5
-center = np.array([position_Q[0]-r, position_Q[1]])
-
-phi = np.linspace(0, 2*np.pi, N)
-x_ref = center[0] + r*np.cos(phi)
-y_ref = center[1] + r*np.sin(phi)
-
-x_all = []  #uchovame hodnoty x a y
-y_all = []
-
-i = 0 #index
-time = 0
-dt = 0.001
-
 while not glfw.window_should_close(window):
-    time_prev = time
+    time_prev = data.time
 
-    while (time - time_prev < 1.0/60.0):
+    while (data.time - time_prev < 1.0/60.0):
+        mj.mj_step(model, data)
 
-        # Vypocet jakobianu
-        position_Q = data.site_xpos[0]  #pritup ke koncovemu senzoru
-        jacp = np.zeros((3, 2))  #3 pro x,y,z a 2 pro theta1, theta2
-        mj.mj_jac(model, data, jacp, None, position_Q, 2)
+    #  x, y, z poloha volneho kloubu
+    #print(data.qpos[0])
+    #print(data.qpos[1])
+    #print(data.qpos[2])
 
-        J = jacp[[0, 1], :]
+    quat_mujoco = np.array([data.qpos[3], data.qpos[4], data.qpos[5], data.qpos[6]])
+    euler = quat2euler(quat_mujoco)  # fukce vrati Eulerove uhly
+    #print('yaw= ', euler[2]);
 
-        # Vypocet inverzniho J
-        Jinv = np.linalg.inv(J)
+    print(data.site_xpos[0])
 
-        # Vypocet dX = Xref (vime) - X (merime)
-        dX = np.array([x_ref[i] - position_Q[0], y_ref[i] - position_Q[1]])
 
-        # Vypocet zmeny uhlu dq = inv(J) * dX
-        dq = Jinv.dot(dX)
-
-        x_all.append(position_Q[0])
-        y_all.append(position_Q[1])
-
-        # Update theta1 and theta2
-        theta1 = theta1 + dq[0]
-        theta2 = theta2 + dq[1]
-
-        data.qpos[0] = theta1
-        data.qpos[1] = theta2
-        mj.mj_forward(model, data)
-        time = time + dt
-        #mj.mj_step(model, data)
-
-    i = i+1
-
-    if (i>=N):
-        plt.figure(1)
-        plt.plot(x_all, y_all, 'bx')
-        plt.plot(x_ref, y_ref, 'r-')
-        plt.ylabel("y")
-        plt.xlabel("x")
-        plt.gca().set_aspect('equal')
-        plt.show(block=False)
-        plt.pause(5)
-        plt.close()
-        break
-    #if (data.time>=simend):
-        #break;
+    if (data.time>=simend):
+        break;
 
     # get framebuffer viewport
     viewport_width, viewport_height = glfw.get_framebuffer_size(

@@ -2,8 +2,8 @@ import mujoco as mj
 from mujoco.glfw import glfw
 import numpy as np
 
-xml_path = 'manipulator.xml' #xml file (assumes this is in the same folder as this file)
-simend = 100 #simulation time
+xml_path = 'odvalovani_mice.xml'  #xml file (assumes this is in the same folder as this file)
+simend = 5 #simulation time
 print_camera_config = 0 #set to 1 to print camera config
                         #this is useful for initializing view of the model)
 
@@ -118,10 +118,13 @@ glfw.set_mouse_button_callback(window, mouse_button)
 glfw.set_scroll_callback(window, scroll)
 
 # Example on how to set camera configuration
-cam.azimuth = 68
-cam.elevation = -45
-cam.distance = 5
-cam.lookat = np.array([0.0, 0.0, 0.0])
+# cam.azimuth = 90
+# cam.elevation = -45
+# cam.distance = 2
+# cam.lookat = np.array([0.0, 0.0, 0])
+
+data.qvel[0] = 4 #odvalovani
+data.qvel[2] = 10 #rotace kolem y
 
 #initialize the controller
 init_controller(model,data)
@@ -129,39 +132,14 @@ init_controller(model,data)
 #set the controller
 mj.set_mjcb_control(controller)
 
-N = 500  # К-во точек (дробление)
-q0_start = 0
-q0_end = 1.57
-q1_start = 0
-q1_end = -2*3.14
-
-q0 = np.linspace(q0_start, q0_end, N) # Это уже библиотека numpy
-q1 = np.linspace(q1_start, q1_end, N) # Это уже библиотека numpy
-
-# inicializace uhlu
-data.qpos[0] = q0_start  # [radian]
-data.qpos[1] = q1_start
-i = 0 #index
-time = 0
-dt = 0.001
-
 while not glfw.window_should_close(window):
-    time_prev = time
+    time_prev = data.time
 
-    while (time - time_prev < 1.0/60.0):
-        data.qpos[0] = q0[i]
-        data.qpos[1] = q1[i]
-        mj.mj_forward(model, data)
-        time = time + dt
-        #mj.mj_step(model, data)
+    while (data.time - time_prev < 1.0/60.0):
+        mj.mj_step(model, data)
 
-    i = i+1
-
-    print(data.site_xpos[0])  # vystup se senzoru č.0, ktery jsme pridali v .xml
-    if (i>=N):
-        break
-    #if (data.time>=simend):
-        #break;
+    if (data.time>=simend):
+        break;
 
     # get framebuffer viewport
     viewport_width, viewport_height = glfw.get_framebuffer_size(
@@ -172,6 +150,8 @@ while not glfw.window_should_close(window):
     if (print_camera_config==1):
         print('cam.azimuth =',cam.azimuth,';','cam.elevation =',cam.elevation,';','cam.distance = ',cam.distance)
         print('cam.lookat =np.array([',cam.lookat[0],',',cam.lookat[1],',',cam.lookat[2],'])')
+
+    cam.lookat[0] = data.qpos[0] #Камера следит за мячом
 
     # Update scene and render
     mj.mjv_updateScene(model, data, opt, None, cam,

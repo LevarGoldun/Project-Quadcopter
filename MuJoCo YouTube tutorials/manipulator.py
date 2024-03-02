@@ -1,10 +1,9 @@
 import mujoco as mj
 from mujoco.glfw import glfw
 import numpy as np
-from scipy.spatial.transform import Rotation as R
 
-xml_path = 'diffdrive.xml' #xml file (assumes this is in the same folder as this file)
-simend = 10 #simulation time
+xml_path = 'manipulator.xml'  #xml file (assumes this is in the same folder as this file)
+simend = 100 #simulation time
 print_camera_config = 0 #set to 1 to print camera config
                         #this is useful for initializing view of the model)
 
@@ -15,17 +14,8 @@ button_right = False
 lastx = 0
 lasty = 0
 
-def quat2euler(quat_mujoco):
-    quat_scipy = np.array([quat_mujoco[3], quat_mujoco[0], quat_mujoco[1], quat_mujoco[2]])
-    r = R.from_quat(quat_scipy)
-    euler = r.as_euler('xyz', degrees=True)
-    return euler
-
-
 def init_controller(model,data):
     #initialize the controller here. This function is called once, in the beginning
-    data.ctrl[0] = 10
-    data.ctrl[1] = 0
     pass
 
 def controller(model, data):
@@ -128,9 +118,9 @@ glfw.set_mouse_button_callback(window, mouse_button)
 glfw.set_scroll_callback(window, scroll)
 
 # Example on how to set camera configuration
-cam.azimuth = 74.0
-cam.elevation = -44
-cam.distance = 8.9
+cam.azimuth = 68
+cam.elevation = -45
+cam.distance = 5
 cam.lookat = np.array([0.0, 0.0, 0.0])
 
 #initialize the controller
@@ -139,26 +129,39 @@ init_controller(model,data)
 #set the controller
 mj.set_mjcb_control(controller)
 
+N = 500  # К-во точек (дробление)
+q0_start = 0
+q0_end = 1.57
+q1_start = 0
+q1_end = -2*3.14
+
+q0 = np.linspace(q0_start, q0_end, N) # Это уже библиотека numpy
+q1 = np.linspace(q1_start, q1_end, N) # Это уже библиотека numpy
+
+# inicializace uhlu
+data.qpos[0] = q0_start  # [radian]
+data.qpos[1] = q1_start
+i = 0 #index
+time = 0
+dt = 0.001
+
 while not glfw.window_should_close(window):
-    time_prev = data.time
+    time_prev = time
 
-    while (data.time - time_prev < 1.0/60.0):
-        mj.mj_step(model, data)
+    while (time - time_prev < 1.0/60.0):
+        data.qpos[0] = q0[i]
+        data.qpos[1] = q1[i]
+        mj.mj_forward(model, data)
+        time = time + dt
+        #mj.mj_step(model, data)
 
-    #  x, y, z poloha volneho kloubu
-    #print(data.qpos[0])
-    #print(data.qpos[1])
-    #print(data.qpos[2])
+    i = i+1
 
-    quat_mujoco = np.array([data.qpos[3], data.qpos[4], data.qpos[5], data.qpos[6]])
-    euler = quat2euler(quat_mujoco)  # fukce vrati Eulerove uhly
-    #print('yaw= ', euler[2]);
-
-    print(data.site_xpos[0])
-
-
-    if (data.time>=simend):
-        break;
+    print(data.site_xpos[0])  # vystup se senzoru č.0, ktery jsme pridali v .xml
+    if (i>=N):
+        break
+    #if (data.time>=simend):
+        #break;
 
     # get framebuffer viewport
     viewport_width, viewport_height = glfw.get_framebuffer_size(
