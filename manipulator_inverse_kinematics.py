@@ -170,10 +170,10 @@ while not glfw.window_should_close(window):
         # Vypocet inverzniho J
         Jinv = np.linalg.inv(J)
 
-        # Vypocet dX
+        # Vypocet dX = Xref (vime) - X (merime)
         dX = np.array([x_ref[i] - position_Q[0], y_ref[i] - position_Q[1]])
 
-        # Vypocet dq = inv(J) * dX
+        # Vypocet zmeny uhlu dq = inv(J) * dX
         dq = Jinv.dot(dX)
 
         x_all.append(position_Q[0])
