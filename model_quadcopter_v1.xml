@@ -1,0 +1,23 @@
+<mujoco>
+	<asset>
+		<texture type="2d" name="podlaha_textura" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8" width="256" height="256"/>
+		<material name="podlaha" texture="podlaha_textura" texuniform="true" texrepeat="5 5" reflectance="0"/>
+	</asset>
+
+	<worldbody>
+        <light diffuse="0.6 0.6 0.6" pos="0 0 3" dir="0 0 -1" directional="true"/>
+		<geom type="plane" size="5 5 0.1" material="podlaha"/>
+
+		<body pos="0.1 0 1.5" euler = "0 90 0" >
+			<geom type="box" size=".1 .2 .3" rgba="0.1 0.9 1 1"/>
+			<joint name="nahore" type="free"/>
+		</body>
+
+	</worldbody>
+
+	<actuator>
+		<!--05.03.2024 Пока хз как применить точечную силу на тело (предварительная мысль как поднимать дрон)-->
+		<motor name="motor" joint="nahore" gear="1" ctrllimited="true" ctrlrange="-100 100"/>
+	</actuator>
+
+</mujoco>
