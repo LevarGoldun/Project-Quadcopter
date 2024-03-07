@@ -1,23 +1,54 @@
-<mujoco>
+<mujoco model="Model quadcopter_v1">
+	<statistic center="0 0 0.1" extent="0.6" meansize="0.5"/>
+	<option density="1.205" viscosity="1.8e-5"/> <!--density[kg/m3] viscosity[m2/s]-->
+
+	<visual>
+		<headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
+		<rgba haze="0.15 0.25 0.35 1"/>
+		<global azimuth="110" elevation="-40" ellipsoidinertia="true"/>
+  	</visual>
+
 	<asset>
+		<!--scena-->
+		<texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
 		<texture type="2d" name="podlaha_textura" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8" width="256" height="256"/>
 		<material name="podlaha" texture="podlaha_textura" texuniform="true" texrepeat="5 5" reflectance="0"/>
+
 	</asset>
 
-	<worldbody>
+	<worldbody><!--SI units-->
+		<!--svetlo a podlaha-->
         <light diffuse="0.6 0.6 0.6" pos="0 0 3" dir="0 0 -1" directional="true"/>
-		<geom type="plane" size="5 5 0.1" material="podlaha"/>
+		<geom name="podlaha" type="plane" size="5 5 0.1" material="podlaha"/>
 
-		<body pos="0.1 0 1.5" euler = "0 90 0" >
-			<geom type="box" size=".1 .2 .3" rgba="0.1 0.9 1 1"/>
-			<joint name="nahore" type="free"/>
+		<!--kvadrokoptera-->
+		<body name="kvadrokoptera" pos="0 0 3">
+			<joint type="free"/>
+			<geom type="box" size="0.5 0.2 0.2" rgba="0.1 0.1 0.1 1"/>
+			<geom type="box" size="0.7 0.2 0.1" pos="0.2 0 0.3" rgba="0.2 0.2 0.2 1"/>
+			<geom type="box" size="0.5 0.08 0.08" euler="0 0 90" pos="0.9 0.6 0.3"  rgba="1 0 0 1"/>
+			<geom type="box" size="0.5 0.08 0.08" euler="0 0 90" pos="0.9 -0.6 0.3"  rgba="1 0 0 1"/>
+			<geom type="box" size="0.5 0.08 0.08" euler="0 0 90" pos="-0.5 0.6 0.3"  rgba="1 0 0 1"/>
+			<geom type="box" size="0.5 0.08 0.08" euler="0 0 90" pos="-0.5 -0.6 0.3"  rgba="1 0 0 1"/>
+
+			<geom type="cylinder" pos="0.9 1.1 0.39" size="0.5 0.01" name="rotor1"  mass=".25"/>
+			<geom type="cylinder" pos="0.9 -1.1 0.39" size="0.5 0.01" name="rotor2"  mass=".25"/>
+			<geom type="cylinder" pos="-0.5 1.1 0.39" size="0.5 0.01" name="rotor3"  mass=".25"/>
+			<geom type="cylinder" pos="-0.5 -1.1 0.39" size="0.5 0.01" name="rotor4"  mass=".25"/>
+
+			<!--Specialni znacky pro umisteni motoru-->
+			<site name="thrust1" pos="0.9 1.1 0.39" size="0.04" rgba="0 0 1 1"/>
+			<site name="thrust2" pos="0.9 -1.1 0.39" size="0.04" rgba="0 0 1 1"/>
+			<site name="thrust3" pos="-0.5 1.1 0.39" size="0.04" rgba="0 0 1 1"/>
+			<site name="thrust4" pos="-0.5 -1.1 0.39" size="0.04" rgba="0 0 1 1"/>
 		</body>
-
 	</worldbody>
 
 	<actuator>
-		<!--05.03.2024 Пока хз как применить точечную силу на тело (предварительная мысль как поднимать дрон)-->
-		<motor name="motor" joint="nahore" gear="1" ctrllimited="true" ctrlrange="-100 100"/>
+		<motor name="thrust1" site="thrust1" gear="0 0 1 0 0 1" ctrlrange="0 800"/>
+		<motor name="thrust2" site="thrust2" gear="0 0 1 0 0 -1" ctrlrange="0 800"/>
+		<motor name="thrust3" site="thrust3" gear="0 0 1 0 0 -1" ctrlrange="0 800"/>
+		<motor name="thrust4" site="thrust4" gear="0 0 1 0 0 1" ctrlrange="0 800"/>
 	</actuator>
 
 </mujoco>
