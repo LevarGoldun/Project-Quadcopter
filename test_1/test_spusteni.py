@@ -1,16 +1,17 @@
 import time
 import mujoco as mj
 import mujoco.viewer
-from mujoco.glfw import glfw
 
 xml_path = 'model_quadcopter_v1.xml'
 
 model = mj.MjModel.from_xml_path(xml_path)  # MuJoCo model
 data = mj.MjData(model)  # MuJoCo data
 
+
 with mujoco.viewer.launch_passive(model, data) as viewer:
     # Close the viewer automatically after 30 wall-seconds.
     start = time.time()
+
     while viewer.is_running() and time.time() - start < 30:
         step_start = time.time()
 
@@ -30,6 +31,8 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
         viewer.sync()
 
         # Rudimentary time keeping, will drift relative to wall clock.
+
         time_until_next_step = model.opt.timestep - (time.time() - step_start)
         if time_until_next_step > 0:
             time.sleep(time_until_next_step)
+
