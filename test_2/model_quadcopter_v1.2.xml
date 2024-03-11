@@ -1,4 +1,4 @@
-<mujoco model="Model quadcopter_v1.1">
+<mujoco model="Model quadcopter_v1.2"> <!--v1.2=vetsi podlaha-->
 	<statistic center="0 0 0.1" extent="0.6" meansize="0.5"/>
 	<option timestep ="0.005" density="1.205" viscosity="1.8e-5"/> <!--density[kg/m3] viscosity[m2/s]-->
 
@@ -12,15 +12,15 @@
 		<!--scena-->
 		<texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="512"/><!--nebo-->
 
-		<texture type="2d" name="podlaha_textura" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8" width="256" height="256"/>
-		<material name="podlaha" texture="podlaha_textura" texuniform="true" texrepeat="5 5" reflectance="0"/><!--podlaha-->
+		<texture type="2d" name="podlaha_textura" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8" width="255" height="255"/>
+		<material name="podlaha" texture="podlaha_textura" texuniform="true" texrepeat="3 3" reflectance="0"/><!--podlaha-->
 
 	</asset>
 
 	<worldbody><!--SI units-->
 		<!--svetlo a podlaha-->
         <light diffuse="0.6 0.6 0.6" pos="0 0 3" dir="0 0 -1" directional="true"/>
-		<geom name="podlaha" type="plane" size="5 5 0.1" material="podlaha"/>
+		<geom name="podlaha" type="plane" size="0 0 0.1" material="podlaha"/>
 
 		<!--kvadrokoptera-->
 		<body name="kvadrokoptera" pos="0 0 3">
