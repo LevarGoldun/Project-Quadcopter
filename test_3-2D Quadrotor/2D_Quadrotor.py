@@ -120,7 +120,7 @@ def xdot(t, x):
 
 
 x0 = [0, 0, 0, 0, 0, 0]  # Initial state [y0, z0, phi0, vy0, vz0, phidot0]
-t_span = [0, 15]  # Simulation time (seconds) [from, to]
+t_span = [0, 10]  # Simulation time (seconds) [from, to]
 
 # Solve for the states, x(t) = [y(t), z(t), phi(t), vy(t), vz(t), phidot(t)]
 sol = solve_ivp(xdot, t_span, x0)
