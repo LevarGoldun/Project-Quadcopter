@@ -8,8 +8,6 @@ from simple_pid import PID
 # Reseni soustavy ODEs
 if True:
     pid = PID(49, 26.1, 7.6, setpoint=2, sample_time=None)
-    i = 0
-    tt = [0]
 
     def dSdx(t, S):
         x1, x2 = S
