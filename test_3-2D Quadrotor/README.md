@@ -4,7 +4,7 @@ Zdroj https://cookierobotics.com/052/,
 https://www.youtube.com/watch?v=GK1t8YIvGM8&list=PLPNM6NzYyzYqMYNc5e4_xip-yEu1jiVrr&index=2 
 a rady od Ing. Michala Kuchaře.
 
-V souboru ...control_0.slx je nejjednodušší ovládání, při kterém se nastavuje úhel natočení kvadrokoptéry. 
+V souboru [...control_0.slx](simulink_2D_Quadrotor_rotation_control_0) je nejjednodušší ovládání, při kterém se nastavuje úhel natočení kvadrokoptéry. 
 Protože systém má 3 stupně volnosti a pouze jeden vstup, pozice x a y kvadrokoptéry se libovolně mění.
 
 V souboru ...contol_1.slx je realizováno kaskádové řízení, 
