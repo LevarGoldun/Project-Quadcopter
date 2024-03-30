@@ -16,3 +16,5 @@ Soubor ...contol_2.slx je vylepšením ...contol_1.slx, nejprve byl změněn 2D 
 takže nyní řídíme dva parametry: normální tahovou sílu a zhruba řečeno delta sílu, 
 která právě zavádí nerovnováhu a kvůli níž vzniká točivý moment. 
 Lze nastavovat požadovanou polohu kvadrokoptéry ve 2D prostoru.
+
+[installation.md](installation.md)
