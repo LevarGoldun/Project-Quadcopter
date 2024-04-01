@@ -6,12 +6,13 @@ from scipy.integrate import solve_ivp
 from simple_pid import PID
 
 # !!! Modelování jednoduchého systému pomocí PID regulátoru z knihovny simple_pid nebo jako vnější funkce controller()
-# # a řešiče odeint, která vypočítá nové stavy systému na nějakém intervalu dt ve smyčce for !!!
+# a řešiče odeint, která vypočítá nové stavy systému na nějakém intervalu dt ve smyčce for !!!
 
 # Reseni soustavy ODEs
 if True:
-    pid = PID(49, 26.1, 7.6, setpoint=2, sample_time=None)
+    #pid = PID(49, 26.1, 7.6, setpoint=2, sample_time=None)
 
+    # zdroj https://softinery.com/blog/implementation-of-pid-controller-in-python/
     def controller(Kp, Ki, Kd, setpoint, measurement):
         global time, integral, time_prev, e_prev  # Value of offset - when the error is equal zero
         offset = 320*0
