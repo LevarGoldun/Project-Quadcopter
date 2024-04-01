@@ -5,11 +5,12 @@ from scipy.integrate import odeint
 from scipy.integrate import solve_ivp
 from simple_pid import PID
 
+# !!! Modelování jednoduchého systému pomocí PID regulátoru (jako argument v solve_ivp) z knihovny simple_pid
+# a řešiče solve_ivp !!!
+
 # Reseni soustavy ODEs
 if True:
     pid = PID(49, 26.1, 7.6, setpoint=2, sample_time=None)
-    i = 0
-    tt = [0]
 
     def dSdx(t, S, controller):
         x1, x2 = S
@@ -20,7 +21,7 @@ if True:
         return [x1_dot, x2_dot]
 
 
-    final_time = 10
+    final_time = 2
     dt = 1e-3
     t_span = (0, final_time)  # Simulation time (seconds) [from, to]
     time_points = np.arange(0, final_time + dt, dt)  # Generation of time points with step dt

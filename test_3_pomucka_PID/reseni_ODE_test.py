@@ -5,6 +5,8 @@ from scipy.integrate import odeint
 from scipy.integrate import solve_ivp
 from simple_pid import PID
 
+# !!! Modelování jednoduchého systému pomocí PID regulátoru z knihovny simple_pid a řešiče solve_ivp !!!
+
 # Reseni soustavy ODEs
 if True:
     pid = PID(49, 26.1, 7.6, setpoint=2, sample_time=None)
@@ -12,8 +14,8 @@ if True:
     def dSdx(t, S):
         x1, x2 = S
         u = pid(x1, dt=1e-3)
-        # ПРЕДВАРИТЕЛЬНОЕ РЕШЕНИЕ В ТОМ, ЧТО ПРИ ВЫЗОВЕ РЕШУЛЯТОРА Я УКАЗЫВАЮ
-        # ПАРАМЕТР dt – если установлено, используется это значение для временного шага вместо реального времени.
+        # ПРЕДВАРИТЕЛЬНОЕ РЕШЕНИЕ В ТОМ, ЧТО ПРИ ВЫЗОВЕ РЕГУЛЯТОРА Я УКАЗЫВАЮ ПАРАМЕТР dt – если установлено,
+        # используется это значение для временного шага вместо реального времени.
         # ХОТЬ РЕГУЛЯТОР И РАБОТАЕТ, Я ДУМАЮ ВЫХОДНЫЕ ЗНАЧЕНИЯ НЕ СОВСЕМ ВЕРНЫ/СОВПАДАЮТ ПО СРАВНЕНИЮ С МАТЛАБОМ
 
         x1_dot = x2
@@ -21,7 +23,7 @@ if True:
         return [x1_dot, x2_dot]
 
 
-    final_time = 10
+    final_time = 2
     dt = 1e-3
     t_span = (0, final_time)  # Simulation time (seconds) [from, to]
     time_points = np.arange(0, final_time + dt, dt)  # Generation of time points with step dt
