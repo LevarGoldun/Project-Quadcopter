@@ -26,7 +26,7 @@ def wind():
 # X   : Current state, [x, y, phi, x_dot, y_dot, phi_dot] = [x1, x2, x3, x4, x5, x6], according to file ...control_2.slx
 # return: First derivative of state, i.e. X_dot = [x1_dot, x2_dot, x3_dot, x4_dot, x5_dot, x6_dot]
 def X_dot(t, X):
-    global dt, F_wind_out, pid_F_cmd_out, pid_angle_cmd_out, pid_phi_desired_out
+    global dt, F_wind_out, pid_F_cmd_out, pid_angle_cmd_out, pid_phi_desired_out  # pro záznam dát
 
     F_cmd = pid_F_cmd(X[2], dt=dt)
     phi_desired = pid_phi_desired(X[1], dt=dt)
@@ -84,6 +84,8 @@ pid_phi_desired_out = []
 # Solve for the states, X(t) = [0, x(t), y(t), phi(t), x_dot(t), y_dot(t), phidot(t)]
 sol = solve_ivp(X_dot, t_span, X0, t_eval=time_points)
 
+
+# --------------------------------------------------Plot----------------------------------------------------------------
 # Plot 1
 fig, axs = plt.subplots(3, figsize=(8, 10))
 
@@ -98,5 +100,5 @@ plt.subplots_adjust(hspace=0.5)
 plt.show()
 
 # Plot 2
-plt.plot(F_wind_out)
-plt.show()
+#plt.plot(F_wind_out)
+#plt.show()
