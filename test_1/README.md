@@ -1,6 +1,4 @@
 Ověření modelu kvadrokoptéry. Spuštění modelovacího prostředí pomocí kódu py. 
 Jednoduchý vertikální pohyb pomocí změny velikosti momentů na vrtulích.
 
-<video width="960" height="720" controls>
-  <source src="test1.mp4" type="video/mp4">
-</video>
+https://github.com/LevarGoldun/Project-Quadcopter/assets/116310407/d3048f45-4666-4a77-873f-882b81d7358e
