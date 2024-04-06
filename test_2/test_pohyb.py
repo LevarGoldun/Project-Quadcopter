@@ -54,6 +54,7 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
         mujoco.mj_step(model, data)
 
         with viewer.lock():
+            # !!! Odkomentujte požadovanou funkci pro spuštění požadovaného pohybu !!!
             #up_down(data)
             #forward_backward(data)
             #left_right(data)
