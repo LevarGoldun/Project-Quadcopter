@@ -29,16 +29,16 @@ Lze nastavovat požadovanou polohu kvadrokoptéry ve 2D prostoru.
 
 
 * Soubor [python_2D_Quadrotor_position_rotation_control_libpid.py](python_2D_Quadrotor_position_rotation_control_libpid.py) obsahuje 
-implementaci [...control_2.slx](simulink_2D_Quadrotor_position_rotation_control_2.slx) s použitím PID z knihovny simple_pid
+implementaci [...control_2.slx](simulink_2D_Quadrotor_position_rotation_control_2.slx) s použitím PID z knihovny simple_pid.
 Řízení soustavy probíhá, ale PID regulátor podle mého názoru funguje sporně. 
 Simulace řízení se ne zcela shoduje se simulací v Simulinku. Filtr není implementován...
 ![plot_2D_Quadrotor_libpid.png](plot_2D_Quadrotor_libpid.png)
 
 
-* Soubor [python_2D_Quadrotor_position_rotation_control_classpid](python_2D_Quadrotor_position_rotation_control_classpid.py) je 
-soubor 2 je totožný se souborem 1, jen PID regulátor je implementován jako třída
+* Soubor [python_2D_Quadrotor_position_rotation_control_classpid](python_2D_Quadrotor_position_rotation_control_classpid.py)
+je totožný s předchozím souborem, jen PID regulátor je implementován jako třída
 (na základě funkce z [návodu](https://softinery.com/blog/implementation-of-pid-controller-in-python)) 
-a je používán řešič odeint. 
+a je používán řešič odeint(). 
 Výsledky regulace jsou mnohem bližší referenčnímu modelu Simulink, 
 ale změna úhlu phi v čase vyvolává otázky.....
 ![plot_2D_Quadrotor_classpid.png](plot_2D_Quadrotor_classpid.png)
