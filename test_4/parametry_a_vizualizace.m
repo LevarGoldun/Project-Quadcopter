@@ -1,5 +1,4 @@
-close all
-
+%% Parametry
 g = 9.81;
 L = 0.086; %[m] poloviční délka kvadrokoptéry
 d = 0.1; %[m] délka lana
@@ -12,88 +11,123 @@ Ip = m*d^2; % setrvačnost hmotného bodu vzdáleného od osy rotace
 k = 0.1; % tlumení kvadrokoptéry
 kp = 0.01; % tlumení kyvadla
 
-syms s
+%syms s
+%%
+data = sim('simulink_2D_Quadrotor_and_pendulum.slx');
+t = data.tout;
+x_t = data.ScopeData.signals(1).values;
+y_t = data.ScopeData.signals(2).values;
+fi_t = data.ScopeData.signals(3).values; %[deg]
+alfa_t = data.ScopeData.signals(4).values; %[deg]
+F1_t = data.F1_t;
+F2_t = data.F2_t;
+%% Grafy a Vizualizace
+close all
+%s=get(0,'ScreenSize');
 
-sim('simulink_2D_Quadrotor_and_pendulum.slx')
+if false
+    h=figure;
+    %set(h,'Position',[5 10 0.99*s(3) 0.9*s(4)],'color',[1 1 1])
+    set(h,'Name', 'Grafy', 'Color',[1 1 1])
 
-s=get(0,'ScreenSize');
-h=figure;
-set(h,'Position',[5 10 0.99*s(3) 0.9*s(4)],'color',[1 1 1])
-h2=subplot('position',[0.07 0.4 0.65 0.15]);
-grid
-xlabel('$t$','Interpreter','Latex','FontSize',18)
-ylabel('$\varphi [rad]$','Interpreter','Latex','FontSize',18)
-set(gca,'Ylim',[min(fi(:,2)) max(fi(:,2))])
+
+    subplot(4, 1, 1); 
+    grid on 
+    xlabel('t [s]') 
+    ylabel('x [m]')
+    set(gca,'Ylim',[min(x_t) max(x_t)]) 
+    title('X poloha kvadrokoptery')
+    
+    subplot(4, 1, 2)
+    grid on
+    xlabel('t [s]') 
+    ylabel('y [m]')
+    set(gca,'Ylim',[min(y_t) max(y_t)]) 
+    title('Y poloha kvadrokoptery')
+    
+    subplot(4, 1, 3)
+    grid on
+    xlabel('t [s]') 
+    ylabel('fi [deg]')
+    set(gca,'Ylim',[min(fi_t) max(fi_t)]) 
+    title('Otoceni kvadrokoptery')
+    
+    subplot(4, 1, 4)
+    grid on
+    xlabel('t [s]') 
+    ylabel('alfa [deg]')
+    set(gca,'Ylim',[min(alfa_t) max(alfa_t)]) 
+    title('Vychyleni zavazi')
+end
+
+
+viz=figure;
+set(viz, 'Name', 'Vizualizace', 'Color',[1 1 1])
+%h1=subplot('position',[0 0.06 1 0.30]);
+axis([-1 1 -5 5])
 hold on
-title('Pendulum angle','FontSize',12)
+axis equal
+grid on
 
-h3=subplot('position',[0.07 0.6 0.65 0.15]);
-grid
-hold on
-ylabel('$x [m]$','Interpreter','Latex','FontSize',18)
-title('Cart position','FontSize',12)
-set(gca,'Ylim',[min(x(:,2)) max(x(:,2))])
-
-h5=subplot('position',[0.07 0.8 0.65 0.15]);
-grid
-hold on
-ylabel('$F [N]$','Interpreter','Latex','FontSize',18)
-title('Action force','FontSize',12)
-set(gca,'Ylim',[min(u(:,2))-0.0001 max(u(:,2))+0.0001])
-hold on
-
-
-
-h6=subplot('position',[0.78 0.4 0.18 0.55]);
-pzmap(sys);
-
-
-w0=sqrt((m+M)*g/M/5);
-T0=4*pi/w0;
-
-R=7;
-%vykresleni voziku
-h1=subplot('position',[0 0.06 1 0.30]);
-axis([-20 100 -8 10])
-hold on
-plot([-20 100],[-0.2 -0.2],'linewidth',2,'color',[0.8706 0.4902 0]);
-Cart=fill([0 4 4 0 0],[0 0 2 2 0],[0.9 0.9 0.9],'linewidth',2);
-Ff=quiver(1,1,u(1,1),0,0,'color',[1 0 0],'linewidth',2);
-set(h1,'visible','off');
-pend=plot([2 2],[2 9],'k','linewidth',2);
-cirp=plot(2,9,'ko','MarkerSize',17,'linewidth',2,'MarkerFaceColor',[0 1 0]);
-
+% Kvadrokoptera
+Quadrocopter=fill([-L*10 L*10],[0 0],[0.9 0.9 0.9],'linewidth',2);
+F1=quiver(L*10,0,0,1,'color',[1 0 0],'linewidth',2); %sila zprava
+F2=quiver(-L*10,0,0,1,'color',[0 0 1],'linewidth',2); %sila zleva
+% Zavazi
+lano=plot([0 0],[0 -d*10],'k','linewidth',2, Color=[139,69,19]./255);
+cirp=plot(0,-d*10,'ko','MarkerSize',10,'linewidth',2,'MarkerFaceColor',[0 1 0]);
 
 % vidObj = VideoWriter('pend_two_step_short','MPEG-4');
 % vidObj.FrameRate=100;
 % open(vidObj);
 
+%% Pohyb
+interval=10;
+for k=1:interval:length(t)
+    x=x_t(k);
+    y=y_t(k);
+    fi=fi_t(k); 
+    alfa=alfa_t(k);
+    disp(t(k))
+    
+    %[new_x; new_y]=R*[inicial_x; inicial_y] + [x(t); y(t)]
+    left_side=[cosd(fi) -sind(fi); sind(fi) cosd(fi)]*[-L*10; 0] + [x; y]; 
+    right_side=[cosd(fi) -sind(fi); sind(fi) cosd(fi)]*[L*10; 0] + [x; y];
 
-for k=2:length(x)
-    Y=x(k,2);
-    Fi=fi(k,2);
-    set(Cart,'Xdata',[0 4 4 0 0]+Y);
-    set(pend,'Xdata',[Y+2 Y+2-R*sin(Fi)],'Ydata',2+[0 R*cos(Fi)])
-    set(cirp,'Xdata',Y+2-R*sin(Fi),'Ydata',2+R*cos(Fi))
-    set(Ff,'Xdata',Y+2,'Udata',5*u(k,2))
+    set(Quadrocopter,'Xdata',[left_side(1) right_side(1)],'Ydata',[left_side(2) right_side(2)]);
 
-     if k==2
-        py=plot(h3,x(k-1:k,1),x(k-1:k,2),'b','linewidth',2);
-        pu=plot(h2,fi(k-1:k,1),fi(k-1:k,2),'g','linewidth',2);
-        pf=plot(h5,u(k-1:k,1),u(k-1:k,2),'r','linewidth',2);
-     else
-        set(py,'Xdata',x(floor(k/2000)*2000+1:k,1),'Ydata',x(floor(k/2000)*2000+1:k,2));
-        set(pu,'Xdata',fi(floor(k/2000)*2000+1:k,1),'Ydata',fi(floor(k/2000)*2000+1:k,2));
-        set(pf,'Xdata',u(floor(k/2000)*2000+1:k,1),'Ydata',u(floor(k/2000)*2000+1:k,2));
-     if k==3
-         pause
-     end
-     end
-     set(h3,'Xlim',[0 20]+floor(x(k,1)/20)*20);
-     set(h2,'Xlim',[0 20]+floor(x(k,1)/20)*20);
-     set(h5,'Xlim',[0 20]+floor(x(k,1)/20)*20);
+    %kontrola ze vzdalenost mezi krajnimi body kvadrokoptery se rovna 2*L
+    %disp( sqrt( (left_side(1)-right_side(1))^2 + (left_side(2)-right_side(2)^2) ) )
+    
+    set(F1, 'Xdata', right_side(1), 'Ydata', right_side(2), 'Vdata', F1_t(k))
+    set(F2, 'Xdata', left_side(1), 'Ydata', left_side(2), 'Vdata', F2_t(k))
+    
+    x_pendulum = x + d*10*sind(alfa);
+    y_pendulum = y - d*10*cosd(alfa);
+    set(lano, 'Xdata', [x, x_pendulum], 'Ydata', [y, y_pendulum])
+    set(cirp, 'XData', x_pendulum, 'YData', y_pendulum)
+
+    % 
+    %  if k==2
+    %     py=plot(h3,x(k-1:k,1),x(k-1:k,2),'b','linewidth',2);
+    %     pu=plot(h2,fi(k-1:k,1),fi(k-1:k,2),'g','linewidth',2);
+    %     pf=plot(h5,u(k-1:k,1),u(k-1:k,2),'r','linewidth',2);
+    %  else
+    %     set(py,'Xdata',x(floor(k/2000)*2000+1:k,1),'Ydata',x(floor(k/2000)*2000+1:k,2));
+    %     set(pu,'Xdata',fi(floor(k/2000)*2000+1:k,1),'Ydata',fi(floor(k/2000)*2000+1:k,2));
+    %     set(pf,'Xdata',u(floor(k/2000)*2000+1:k,1),'Ydata',u(floor(k/2000)*2000+1:k,2));
+    %  if k==3
+    %      pause
+    %  end
+    %  end
+    %  set(h3,'Xlim',[0 20]+floor(x(k,1)/20)*20);
+    %  set(h2,'Xlim',[0 20]+floor(x(k,1)/20)*20);
+    %  set(h5,'Xlim',[0 20]+floor(x(k,1)/20)*20);
+     
+
      %currFrame = getframe(h);
      %writeVideo(vidObj,currFrame);
-     pause(0.05)
+     %pause(0.01)
+     drawnow
 end
 %close(vidObj);
