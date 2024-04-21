@@ -71,15 +71,20 @@ grid on
 
 % Kvadrokoptera
 Quadrocopter=fill([-L*10 L*10],[0 0],[0.9 0.9 0.9],'linewidth',2);
-F1=quiver(L*10,0,0,1,'color',[1 0 0],'linewidth',2); %sila zprava
-F2=quiver(-L*10,0,0,1,'color',[0 0 1],'linewidth',2); %sila zleva
+F1=quiver(L*10,0,0,F1_t(2),'color',[1 0 0],'linewidth',2); %sila zprava
+F2=quiver(-L*10,0,0,F2_t(2),'color',[0 0 1],'linewidth',2); %sila zleva
 % Zavazi
 lano=plot([0 0],[0 -d*10],'k','linewidth',2, Color=[139,69,19]./255);
 cirp=plot(0,-d*10,'ko','MarkerSize',10,'linewidth',2,'MarkerFaceColor',[0 1 0]);
 
-% vidObj = VideoWriter('pend_two_step_short','MPEG-4');
-% vidObj.FrameRate=100;
-% open(vidObj);
+
+video = false;
+
+if video
+vidObj = VideoWriter('quadrotor_and_pendulum_test1','MPEG-4');
+vidObj.FrameRate=60;
+open(vidObj);
+end
 
 %% Pohyb
 interval=10;
@@ -124,10 +129,13 @@ for k=1:interval:length(t)
     %  set(h2,'Xlim',[0 20]+floor(x(k,1)/20)*20);
     %  set(h5,'Xlim',[0 20]+floor(x(k,1)/20)*20);
      
-
-     %currFrame = getframe(h);
-     %writeVideo(vidObj,currFrame);
+     if video
+     currFrame = getframe(viz);
+     writeVideo(vidObj,currFrame);
+     end
      %pause(0.01)
      drawnow
 end
-%close(vidObj);
+if video
+close(vidObj);
+end
