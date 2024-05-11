@@ -11,28 +11,29 @@ simend = 10  # simulation time
 model = mj.MjModel.from_xml_path(xml_path)  # MuJoCo model
 data = mj.MjData(model)  # MuJoCo data
 
-with mujoco.viewer.launch_passive(model, data) as viewer:
-    start = time.time()
+viewer = mujoco.viewer.launch_passive(model, data)
 
-    # Close the viewer automatically after simend wall-seconds.
-    while viewer.is_running() and data.time < simend:
-        step_start = time.time()
+start = time.time()
 
-        # mj_step can be replaced with code that also evaluates
-        # a policy and applies a control signal before stepping the physics.
-        mj.mj_step(model, data)
+# Close the viewer automatically after simend wall-seconds.
+while viewer.is_running() and data.time < simend:
+    step_start = time.time()
 
-        # Example modification of a viewer option: toggle contact points every two seconds.
-        # with viewer.lock():
-        #     viewer.opt.flags[mujoco.mjtVisFlag.mjVIS_CONTACTPOINT] = int(data.time % 2)
+    # mj_step can be replaced with code that also evaluates
+    # a policy and applies a control signal before stepping the physics.
+    mj.mj_step(model, data)
 
-        # Pick up changes to the physics state, apply perturbations, update options from GUI.
-        viewer.sync()
+    # Example modification of a viewer option: toggle contact points every two seconds.
+    # with viewer.lock():
+    #     viewer.opt.flags[mujoco.mjtVisFlag.mjVIS_CONTACTPOINT] = int(data.time % 2)
 
-        #Rudimentary time keeping, will drift relative to wall clock.
-        time_until_next_step = model.opt.timestep - (time.time() - step_start)
-        if time_until_next_step > 0:
-            time.sleep(time_until_next_step)
+    # Pick up changes to the physics state, apply perturbations, update options from GUI.
+    viewer.sync()
+
+    #Rudimentary time keeping, will drift relative to wall clock.
+    time_until_next_step = model.opt.timestep - (time.time() - step_start)
+    if time_until_next_step > 0:
+        time.sleep(time_until_next_step)
 
 
 # porovnani casu konani programu a casu v simulaci
