@@ -4,7 +4,7 @@
 # --> simplified_template_mujoco.py
 
 import mujoco as mj
-from mujoco.glfw import glfw
+from mujoco.glfw import glfw  # p.s. more low-level than mujoco.viewer
 import numpy as np
 
 xml_path = 'model_quadcopter_v1.2_example.xml'  # xml file (assumes this is in the same folder as this file)
@@ -148,10 +148,10 @@ mj.set_mjcb_control(controller)
 while not glfw.window_should_close(window):
     time_prev = data.time
 
-    while (data.time - time_prev < 1.0 / 60.0):
+    while data.time - time_prev < 1/60:
         mj.mj_step(model, data)
 
-    if (data.time >= simend):
+    if data.time >= simend:
         break
 
     # get framebuffer viewport
