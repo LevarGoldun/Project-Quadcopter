@@ -25,11 +25,12 @@
 		<!--kyvadlo-->
 		<body pos="0 0 2" euler="0 0 0">
 			<geom type="cylinder" size="0.05 1" mass="0" rgba="1 1 0 1"/>
-			<geom type="sphere" pos="0 0 -1" mass="1" size="0.2" rgba="1 0 0 1" name="kulicka"/>
+			<geom type="sphere" pos="0 0 -1" mass="2" size="0.2" rgba="1 0 0 1" name="kulicka"/>
 
-			<joint name="joint0" type="hinge" axis="0 1 0" pos="0 0 1"/> <!--prvke pro rotaci-->
+			<joint name="joint0" type="hinge" axis="1 0 0" pos="0 0 1"/> <!--prvke pro rotaci-->
 
 			<site name="misto_imisteni_senzoru" pos="0 0 -1" size="0.05"/>
+			<site name="misto_imisteni_dalkomeru" pos="0 0 -1" euler="0 180 0" size="0.05"/>
 		</body>
 	</worldbody>
 
@@ -38,6 +39,12 @@
 		<touch name="kontaktny_senzor" site="misto_imisteni_senzoru"/> <!--1 output-->
 		<accelerometer name="akcelerometr" site="misto_imisteni_senzoru"/> <!--3 outputs-->
 		<velocimeter name="mereni_rychlosti" site="misto_imisteni_senzoru"/> <!--3 outputs-->
+		<gyro name="gyroskop" site="misto_imisteni_senzoru"/> <!--3 outputs-->
+		<force name="senzor_sily" site="misto_imisteni_senzoru"/> <!--3 outputs-->
+		<torque name="senzor_momentu" site="misto_imisteni_senzoru"/> <!--3 outputs-->
+
+		<rangefinder  name="senzor_vzdalenosti" site="misto_imisteni_dalkomeru" cutoff="10"/> <!--1 output-->
+		<!--rangefinder meri podel Z+ site, takze musel jsem smerovat site osou Z+ dolu, aby meril vzalenost do plane-->
 
 	</sensor>
 

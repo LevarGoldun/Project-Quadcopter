@@ -34,7 +34,8 @@ cam.distance = 9.4
 cam.lookat = [0.075, 0.459, 1.927]
 
 # Nejake pocatecni podminky
-data.qpos[0] = np.pi/2
+data.qpos[0] = np.pi/2  # pro joint typu hinge v .xml
+
 mj.mj_forward(model, data)  # je to stejne jako mj_step ale bez intergace podle casu
 
 # matice pro ukladani dat polohy
@@ -43,6 +44,10 @@ times = []
 angles = []
 accel = []
 speed = []
+angspeed = []
+force = []
+torque = []
+z_distance = []
 # ==========================================CYKLUS======================================================================
 viewer.sync()
 start = time.time()
@@ -56,8 +61,13 @@ while viewer.is_running() and data.time < simend:
     times.append(data.time)
 
     angles.append(data.qpos.copy()*180/np.pi)
+
     accel.append(data.sensordata[1:3+1].copy())
     speed.append(data.sensordata[4:6+1].copy())
+    angspeed.append(data.sensordata[7:9+1].copy())
+    force.append(data.sensordata[10:12+1].copy())
+    torque.append(data.sensordata[13:15+1].copy())
+    z_distance.append(data.sensordata[16])
 
     # ==============================program konec=======================================================================
 
@@ -118,3 +128,37 @@ plt.plot(times, speed, label=["vx", "vy", "vz"])
 plt.title("Velocimetr")
 plt.legend()
 plt.show()
+
+# uhlova rychlost
+plt.figure()
+angspeed = np.array(angspeed)
+plt.plot(times, angspeed, label=["wx", "wy", "wz"])
+plt.title("Uhlova rychlost")
+plt.legend()
+plt.show()
+
+# Sila
+# !!! V danem konkretnim pripade kde mame volne kmitani, tak na kyvadlo pusobi pouze gravitacni sila v
+# jednotlivych smerech. Fz = m*g = 2*g -> graf se shoduje s grafem zrychleni (jenom hodnoty o velikost hmotnosti vetsi)
+plt.figure()
+force = np.array(force)
+plt.plot(times, force, label=["Fx", "Fy", "Fz"])
+plt.title("Sila")  # Sila mezi telesem a nafrazenym telesem (worldbody?)
+plt.legend()
+plt.show()
+
+# Moment (njeste jsem nepochopil jak se pocita)
+plt.figure()
+torque = np.array(torque)
+plt.plot(times, torque, label=["Mx", "My", "Mz"])
+plt.title("Moment")  # Moment mezi telesem a nafrazenym telesem (worldbody?)
+plt.legend()
+plt.show()
+
+# Vzdalenost do podlahy
+plt.figure()
+z_distance = np.array(z_distance)
+plt.plot(times, z_distance)
+plt.title("Vzalenost od podlahy (max mereni 10)")
+plt.show()
+
