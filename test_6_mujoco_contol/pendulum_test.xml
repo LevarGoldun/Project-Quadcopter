@@ -23,7 +23,7 @@
 		<geom name="podlaha" type="plane" size="0 0 0.1" material="podlaha"/>
 
 		<!--kyvadlo-->
-		<body pos="0 0 2" euler="0 0 0">
+		<body name="kyvadlo" pos="0 0 2" euler="0 0 0">
 			<geom type="cylinder" size="0.05 1" mass="0" rgba="1 1 0 1"/>
 			<geom type="sphere" pos="0 0 -1" mass="2" size="0.2" rgba="1 0 0 1" name="kulicka"/>
 
@@ -45,7 +45,10 @@
 
 		<rangefinder  name="senzor_vzdalenosti" site="misto_imisteni_dalkomeru" cutoff="10"/> <!--1 output-->
 		<!--rangefinder meri podel Z+ site, takze musel jsem smerovat site osou Z+ dolu, aby meril vzalenost do plane-->
-
 	</sensor>
+
+	<actuator>
+		<motor name="torque_servo" joint="joint0" gear="1"/>
+	</actuator>
 
 </mujoco>

@@ -34,7 +34,8 @@ cam.distance = 9.4
 cam.lookat = [0.075, 0.459, 1.927]
 
 # Nejake pocatecni podminky
-data.qpos[0] = np.pi/2  # pro joint typu hinge v .xml
+q0_init = np.pi
+data.qpos[0] = 0  # pro joint typu hinge v .xml
 
 mj.mj_forward(model, data)  # je to stejne jako mj_step ale bez intergace podle casu
 
@@ -69,6 +70,27 @@ while viewer.is_running() and data.time < simend:
     torque.append(data.sensordata[13:15+1].copy())
     z_distance.append(data.sensordata[16])
 
+    # data.ctrl[0] = -500*(data.qpos[0]-q0_init) - 50*data.qvel[0]  # priklad rizeni skoro PD regulatorem
+
+    # model-based control (feedback linearization), tau = M*(PD-control) + f
+    M = np.zeros((1, 1))
+    mj.mj_fullM(model, M, data.qM)  # matice hmotnosti
+    # pro model kyvadla bude M=8.032, coz jsou moment setrvacnosti koule k ose rotaci
+    f = np.array([data.qfrc_bias[0]])  # matic gravitacnich a coriolisovych sil
+
+    kp = 5
+    kd = 2*np.sqrt(kp)
+
+    pd = np.array([-kp * (data.qpos[0] - q0_init) - kd * data.qvel[0]])
+    tau = M*pd + f
+    data.ctrl[0] = tau[0][0]  # wow, to super reguluje
+
+    # print("Force:", data.actuator_force)
+    # print("Moment:", data.actuator_moment)
+    # print("Gravitacni+Coriolisova:", data.qfrc_bias)
+    # print("generalized force?", data.qfrc_applied)
+    # print("Какая-то штука актуаторов, сила?:", data.qfrc_actuator)
+
     # ==============================program konec=======================================================================
 
     # mj_step can be replaced with code that also evaluates
@@ -92,73 +114,73 @@ while viewer.is_running() and data.time < simend:
 print("Real time", round(time.time() - start, 2))
 print("Data.time", round(data.time, 2))
 
-# poloha a uhel odkloneni
-positions = np.array(positions)
-fig, axs = plt.subplots(2, 1)
-
-axs[0].plot(times, positions[:, 0], label='X position')
-axs[0].plot(times, positions[:, 1], label='Y position')
-axs[0].plot(times, positions[:, 2], label='Z position')
-
-axs[0].set_xlabel('Time Step')
-axs[0].set_ylabel('Position')
-axs[0].set_title('Object Position Over Time')
-axs[0].legend()
-
-axs[1].plot(times, angles, label='Angles')
-axs[1].set_xlabel('Time Step')
-axs[1].set_ylabel('Angles [deg]')
-axs[1].legend()
-
-plt.tight_layout()  # vzdalenost mezi subploty
-plt.show()
-
-# zrychleni
-plt.figure()
-accel = np.array(accel)
-plt.plot(times, accel, label=["ax", "ay", "az"])
-plt.title("Akcelerometr")
-plt.legend()
-plt.show()
-
-# rychlost
-plt.figure()
-speed = np.array(speed)
-plt.plot(times, speed, label=["vx", "vy", "vz"])
-plt.title("Velocimetr")
-plt.legend()
-plt.show()
-
-# uhlova rychlost
-plt.figure()
-angspeed = np.array(angspeed)
-plt.plot(times, angspeed, label=["wx", "wy", "wz"])
-plt.title("Uhlova rychlost")
-plt.legend()
-plt.show()
-
-# Sila
-# !!! V danem konkretnim pripade kde mame volne kmitani, tak na kyvadlo pusobi pouze gravitacni sila v
-# jednotlivych smerech. Fz = m*g = 2*g -> graf se shoduje s grafem zrychleni (jenom hodnoty o velikost hmotnosti vetsi)
-plt.figure()
-force = np.array(force)
-plt.plot(times, force, label=["Fx", "Fy", "Fz"])
-plt.title("Sila")  # Sila mezi telesem a nafrazenym telesem (worldbody?)
-plt.legend()
-plt.show()
-
-# Moment (njeste jsem nepochopil jak se pocita)
-plt.figure()
-torque = np.array(torque)
-plt.plot(times, torque, label=["Mx", "My", "Mz"])
-plt.title("Moment")  # Moment mezi telesem a nafrazenym telesem (worldbody?)
-plt.legend()
-plt.show()
-
-# Vzdalenost do podlahy
-plt.figure()
-z_distance = np.array(z_distance)
-plt.plot(times, z_distance)
-plt.title("Vzalenost od podlahy (max mereni 10)")
-plt.show()
+# # poloha a uhel odkloneni
+# positions = np.array(positions)
+# fig, axs = plt.subplots(2, 1)
+#
+# axs[0].plot(times, positions[:, 0], label='X position')
+# axs[0].plot(times, positions[:, 1], label='Y position')
+# axs[0].plot(times, positions[:, 2], label='Z position')
+#
+# axs[0].set_xlabel('Time Step')
+# axs[0].set_ylabel('Position')
+# axs[0].set_title('Object Position Over Time')
+# axs[0].legend()
+#
+# axs[1].plot(times, angles, label='Angles')
+# axs[1].set_xlabel('Time Step')
+# axs[1].set_ylabel('Angles [deg]')
+# axs[1].legend()
+#
+# plt.tight_layout()  # vzdalenost mezi subploty
+# plt.show()
+#
+# # zrychleni
+# plt.figure()
+# accel = np.array(accel)
+# plt.plot(times, accel, label=["ax", "ay", "az"])
+# plt.title("Akcelerometr")
+# plt.legend()
+# plt.show()
+#
+# # rychlost
+# plt.figure()
+# speed = np.array(speed)
+# plt.plot(times, speed, label=["vx", "vy", "vz"])
+# plt.title("Velocimetr")
+# plt.legend()
+# plt.show()
+#
+# # uhlova rychlost
+# plt.figure()
+# angspeed = np.array(angspeed)
+# plt.plot(times, angspeed, label=["wx", "wy", "wz"])
+# plt.title("Uhlova rychlost")
+# plt.legend()
+# plt.show()
+#
+# # Sila
+# # !!! V danem konkretnim pripade kde mame volne kmitani, tak na kyvadlo pusobi pouze gravitacni sila v
+# # jednotlivych smerech. Fz = m*g = 2*g -> graf se shoduje s grafem zrychleni (jenom hodnoty o velikost hmotnosti vetsi)
+# plt.figure()
+# force = np.array(force)
+# plt.plot(times, force, label=["Fx", "Fy", "Fz"])
+# plt.title("Sila")  # Sila mezi telesem a nafrazenym telesem (worldbody?)
+# plt.legend()
+# plt.show()
+#
+# # Moment (njeste jsem nepochopil jak se pocita)
+# plt.figure()
+# torque = np.array(torque)
+# plt.plot(times, torque, label=["Mx", "My", "Mz"])
+# plt.title("Moment")  # Moment mezi telesem a nafrazenym telesem (worldbody?)
+# plt.legend()
+# plt.show()
+#
+# # Vzdalenost do podlahy
+# plt.figure()
+# z_distance = np.array(z_distance)
+# plt.plot(times, z_distance)
+# plt.title("Vzalenost od podlahy (max mereni 10)")
+# plt.show()
 
