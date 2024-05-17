@@ -8,8 +8,8 @@ m = 0.01; %[kg]
 Ikv = 0.00025; %[kg*m^2]
 Ip = m*d^2; % setrvačnost hmotného bodu vzdáleného od osy rotace
 
-k = 0.1; % x a y tlumení kvadrokoptéry
-kp = 0.01; % xp a yp tlumení kyvadla
+% k = 0.1; % x a y tlumení kvadrokoptéry
+% kp = 0.01; % xp a yp tlumení kyvadla
 
 
 % zaprve smodelujeme bez zadneho tlumeni

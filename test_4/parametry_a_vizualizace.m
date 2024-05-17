@@ -13,7 +13,7 @@ kp = 0.01; % xp a yp tlumení kyvadla
 
 %syms s
 %%
-data = sim('simulink_2D_Quadrotor_and_pendulum.slx');
+% data = sim('simulink_2D_Quadrotor_and_pendulum.slx');
 t = data.tout;
 x_t = data.ScopeData.signals(1).values;
 y_t = data.ScopeData.signals(2).values;
@@ -87,7 +87,7 @@ open(vidObj);
 end
 
 %% Pohyb
-interval=10;
+interval=100; %FPS
 for k=1:interval:length(t)
     x=x_t(k);
     y=y_t(k);
