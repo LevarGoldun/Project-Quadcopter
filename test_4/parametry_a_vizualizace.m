@@ -88,12 +88,12 @@ end
 
 %% Pohyb
 interval=100; %FPS
-for k=1:interval:length(t)
-    x=x_t(k);
-    y=y_t(k);
-    fi=fi_t(k); 
-    alfa=alfa_t(k);
-    disp(t(k))
+for j=1:interval:length(t)
+    x=x_t(j);
+    y=y_t(j);
+    fi=fi_t(j); 
+    alfa=alfa_t(j);
+    disp(t(j))
     
     %[new_x; new_y]=R*[inicial_x; inicial_y] + [x(t); y(t)]
     left_side=[cosd(fi) -sind(fi); sind(fi) cosd(fi)]*[-L*10; 0] + [x; y]; 
@@ -104,8 +104,8 @@ for k=1:interval:length(t)
     %kontrola ze vzdalenost mezi krajnimi body kvadrokoptery se rovna 2*L
     %disp( sqrt( (left_side(1)-right_side(1))^2 + (left_side(2)-right_side(2)^2) ) )
     
-    set(F1, 'Xdata', right_side(1), 'Ydata', right_side(2), 'Vdata', F1_t(k))
-    set(F2, 'Xdata', left_side(1), 'Ydata', left_side(2), 'Vdata', F2_t(k))
+    set(F1, 'Xdata', right_side(1), 'Ydata', right_side(2), 'Vdata', F1_t(j))
+    set(F2, 'Xdata', left_side(1), 'Ydata', left_side(2), 'Vdata', F2_t(j))
     
     x_pendulum = x + d*10*sind(alfa);
     y_pendulum = y - d*10*cosd(alfa);
