@@ -1,0 +1,1 @@
+Samostatná složka pro porovnání řízení modelu kvadrokoptéry se závažím a bez něj ve 2D.
