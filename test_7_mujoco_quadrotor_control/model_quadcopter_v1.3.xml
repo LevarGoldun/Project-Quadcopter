@@ -24,7 +24,7 @@
 		<geom name="podlaha" type="plane" size="0 0 0.1" material="podlaha"/>
 
 		<!--kvadrokoptera-->
-		<body name="kvadrokoptera" pos="0 0 5">
+		<body name="kvadrokoptera" pos="0 0 10">
 			<joint type="free"/>
 			<geom type="box" name="zakladna" size="0.7 0.2 0.1" mass="1" rgba="0.2 0.2 0.2 1"/>
 			<geom type="box" name="podvozek" size="0.5 0.2 0.2" mass="0.5" pos="0 0 -0.3" rgba="0.1 0.1 0.1 1"/>
@@ -69,13 +69,18 @@
 		<torque name="senzor momentu" site="IMU+other"/> <!--3 outputs-->
 		<rangefinder  name="senzor vzdalenosti" site="range site" cutoff="10"/> <!--1 output-->
 		<!--rangefinder meri podel Z+ site, takze musel jsem smerovat site osou Z+ dolu, aby meril vzalenost do plane-->
+
+		<!--testove senzory na aktuatoru-->
+<!--		<actuatorpos name="senzor delky aktuatoru" actuator="motor1"/>-->
+<!--		<actuatorvel name="senzor rychlosti aktuatoru" actuator="motor1"/> &lt;!&ndash;neni to, co jsem si myslel&ndash;&gt;-->
+<!--		<actuatorfrc name="senzor sily aktuatoru" actuator="motor1"/>-->
 	</sensor>
 
 	<actuator>
-		<motor name="motor1" site="thrust1" gear="0 0 1 0 0 1" ctrlrange="0 10"/> <!--CCW-->
-		<motor name="motor2" site="thrust2" gear="0 0 1 0 0 -1" ctrlrange="0 10"/> <!--CW-->
-		<motor name="motor3" site="thrust3" gear="0 0 1 0 0 1" ctrlrange="0 10"/> <!--CCW-->
-		<motor name="motor4" site="thrust4" gear="0 0 1 0 0 -1" ctrlrange="0 10"/> <!--CW-->
+		<motor name="motor1" site="thrust1" gear="0 0 1 0 0 1"/> <!--CCW-->
+		<motor name="motor2" site="thrust2" gear="0 0 1 0 0 -1"/> <!--CW-->
+		<motor name="motor3" site="thrust3" gear="0 0 1 0 0 1"/> <!--CCW-->
+		<motor name="motor4" site="thrust4" gear="0 0 1 0 0 -1"/> <!--CW-->
 	</actuator>
 
 </mujoco>
