@@ -1,3 +1,6 @@
+# игнорирование папки с уроками. они портят статистику
+MuJoCo YouTube tutorials
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
