@@ -2,7 +2,10 @@
 % soubor s modely
 % data = sim('simulink_rizeni_bez_a_s_zavazim.slx');
 data = out; % tento prikaz, pokud Simulink soubor byl spusten uvnitr rucne
+
+
 video = false;
+name = "simulace4"; %!!! jmeno video souboru !!!
 
 t = data.tout;
 %%
@@ -22,11 +25,15 @@ alfa_se = data.Se_zavazim.signals(4).values; %[deg]
 F1_se = data.F1_F2.signals(2).values(:,1);
 F2_se = data.F1_F2.signals(2).values(:,2);
 
+% Referenci poloha
+x_desired = data.x_y_fi_desired.signals(1).values(:,1);
+y_desired = data.x_y_fi_desired.signals(1).values(:,2);
+fi_desired = data.x_y_fi_desired.signals(1).values(:,3);
 %% Grafy a Vizualizace
 close all
-%s=get(0,'ScreenSize');
+screen=get(0,'ScreenSize');
 
-% if false
+% if true
 %     h=figure;
 %     %set(h,'Position',[5 10 0.99*s(3) 0.9*s(4)],'color',[1 1 1])
 %     set(h,'Name', 'Grafy', 'Color',[1 1 1])
@@ -62,17 +69,62 @@ close all
 % end
 
 viz=figure;
-set(viz, 'Name', 'Vizualizace', 'Color',[1 1 1])
-%h1=subplot('position',[0 0.06 1 0.30]);
+set(viz, 'Name', 'Vizualizace', 'Position',[5 10 0.99*screen(3) 0.9*screen(4)], 'Color',[1 1 1])
+
+
+s1 = subplot(4, 2, 1);
+hold on
+grid on
+ylabel('x(t)','FontSize', 18)
+title('X pozice kvadrokoptér (zlutý = bez zavází | zelený = se zavázím)', 'FontSize', 16);
+set(gca,'Ylim',[min(x_se) max(x_se)]*1.1)
+set(gca,'Xlim', [min(t) max(t)])
+
+s2 = subplot(4, 2, 3);
+hold on
+grid on
+ylabel('y(t)','FontSize', 18)
+title('Y pozice kvadrokoptér', 'FontSize', 16);
+set(gca,'Ylim',[min(y_se) max(y_se)]*1.1)
+set(gca,'Xlim', [min(t) max(t)])
+
+s3 = subplot(4, 2, 5);
+hold on
+grid on
+ylabel('fi(t)','FontSize', 18)
+title('Orientace kvadrokoptér [deg]', 'FontSize', 16);
+set(gca,'Ylim',[min(fi_se) max(fi_se)]*1.1)
+set(gca,'Xlim', [min(t) max(t)])
+
+s4 = subplot(4, 2, 7);
+hold on
+grid on
+ylabel('alfa(t)','FontSize', 18)
+title('Úhel vychýlení zátěže [deg]', 'FontSize', 16);
+set(gca,'Ylim',[min(alfa_se) max(alfa_se)]*1.1)
+set(gca,'Xlim', [min(t) max(t)])
+
+% %h1=subplot('position',[0 0.06 1 0.30]);
+% axis([-1 1 -10 10])
+% hold on
+% axis equal
+% %axis('auto');
+% grid on
+
+s5 = subplot(1, 2, 2);
+title('Vizualizace porovnání řízení', FontSize=16);
 axis([-1 1 -10 10])
 hold on
 axis equal
 %axis('auto');
 grid on
 
+xlabel('x [m]', FontSize=18)
+ylabel('y [m]', FontSize=18)
+
 % Kvadrokoptera se zavazim
 Quadrocopter_se_obj=fill([-L*10 L*10],[0 0],[0.9 0.9 0.9],'linewidth',2);
-txt_se = text(0, 0, 'Se', 'HorizontalAlignment', 'center');
+txt_se = text(0, 0, 'Se', 'HorizontalAlignment', 'center', 'FontSize', 14);
 F1_se_obj=quiver(L*10,0,0,F1_se(1),'color',[1 0 0],'linewidth',2); %sila zprava
 F2_se_obj=quiver(-L*10,0,0,F2_se(1),'color',[0 0 1],'linewidth',2); %sila zleva
 % Zavazi
@@ -83,19 +135,23 @@ cirp=plot(0,-d*10,'ko','MarkerSize',10,'linewidth',2,'MarkerFaceColor',[0 1 0]);
 Quadrocopter_bez_obj=fill([-L*10 L*10],[0 0],[0.9 0.9 0.9],'linewidth',2);
 F1_bez_obj=quiver(L*10,0,0,F1_bez(1),'color',[1 0 0],'linewidth',2); %sila zprava
 F2_bez_obj=quiver(-L*10,0,0,F2_bez(1),'color',[0 0 1],'linewidth',2); %sila zleva
-txt_bez = text(0, 0, 'Bez', 'HorizontalAlignment', 'center');
+txt_bez = text(0, 0, 'Bez', 'HorizontalAlignment', 'center', 'FontSize', 14);
 
+hold off
 
+%% Vypocet FPS video
+interval=60; %FPS vizualizace (nebereme vsechne body z Simulink)
 
+cas_video = 40; % [s]
+%length(t)/interval/FrameRate=cas_video
 
 if video
-vidObj = VideoWriter('video','MPEG-4');
-vidObj.FrameRate=60;
+vidObj = VideoWriter(name, 'MPEG-4');
+vidObj.FrameRate = round(length(t)/interval/cas_video);
 open(vidObj);
 end
 
-%% Pohyb
-interval=30; %FPS
+
 for j=1:interval:length(t)
 
     disp("Cas: "+num2str(t(j))+" s")
@@ -138,31 +194,31 @@ for j=1:interval:length(t)
     
     set(F1_bez_obj, 'Xdata', right_side_bez(1), 'Ydata', right_side_bez(2), 'Vdata', F1_bez(j))
     set(F2_bez_obj, 'Xdata', left_side_bez(1), 'Ydata', left_side_bez(2), 'Vdata', F2_bez(j))
+    
+    %==========================Dalsi grafy=================================
+    plot(s1, t(j), x_bez_j, '.', 'linewidth', 1, Color=[0.9290 0.6940 0.1250])
+    plot(s1, t(j), x_se_j, '.','linewidth', 1, Color=[0.4660 0.6740 0.1880]);
+    plot(s1, t(j), x_desired(j), '.r', 'linewidth', 0.5)
+    
+    plot(s2, t(j), y_bez_j, '.', 'linewidth', 1, Color=[0.9290 0.6940 0.1250])
+    plot(s2, t(j), y_se_j, '.','linewidth', 1, Color=[0.4660 0.6740 0.1880]);
+    plot(s2, t(j), y_desired(j), '.r', 'linewidth', 0.5)
+    
+    plot(s3, t(j), fi_bez_j, '.', 'linewidth', 1, Color=[0.9290 0.6940 0.1250])
+    plot(s3, t(j), fi_se_j, '.','linewidth', 1, Color=[0.4660 0.6740 0.1880]);
+    plot(s3, t(j), fi_desired(j), '.r', 'linewidth', 0.5)
 
-    % 
-    %  if k==2
-    %     py=plot(h3,x(k-1:k,1),x(k-1:k,2),'b','linewidth',2);
-    %     pu=plot(h2,fi(k-1:k,1),fi(k-1:k,2),'g','linewidth',2);
-    %     pf=plot(h5,u(k-1:k,1),u(k-1:k,2),'r','linewidth',2);
-    %  else
-    %     set(py,'Xdata',x(floor(k/2000)*2000+1:k,1),'Ydata',x(floor(k/2000)*2000+1:k,2));
-    %     set(pu,'Xdata',fi(floor(k/2000)*2000+1:k,1),'Ydata',fi(floor(k/2000)*2000+1:k,2));
-    %     set(pf,'Xdata',u(floor(k/2000)*2000+1:k,1),'Ydata',u(floor(k/2000)*2000+1:k,2));
-    %  if k==3
-    %      pause
-    %  end
-    %  end
-    %  set(h3,'Xlim',[0 20]+floor(x(k,1)/20)*20);
-    %  set(h2,'Xlim',[0 20]+floor(x(k,1)/20)*20);
-    %  set(h5,'Xlim',[0 20]+floor(x(k,1)/20)*20);
-     
-     if video
-     currFrame = getframe(viz);
-     writeVideo(vidObj,currFrame);
-     end
-     %pause(0.01)
-     drawnow
+    plot(s4, t(j), alfa_se_j, '.','linewidth', 1, Color=[0.4660 0.6740 0.1880]);
+
+    if video
+    currFrame = getframe(viz);
+    writeVideo(vidObj,currFrame);
+    end
+    %pause(0.01)
+    drawnow
 end
 if video
 close(vidObj);
 end
+
+%% Cast pro kresleni grafu pro druhou prezentaci projektu
