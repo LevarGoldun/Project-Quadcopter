@@ -1,7 +1,7 @@
 <mujoco model="Model quadcopter_v1.3"> <!--v1.3=uprava aktuatoru a pridani senzoru-->
 
 	<statistic center="0 0 0.1" extent="0.6" meansize="0.5"/>
-	<option timestep ="0.001" density="1.205" viscosity="1.8e-5"/> <!--density[kg/m3] viscosity[m2/s]-->
+	<option timestep ="0.001" density="1.205" viscosity="1.8e-5"/> <!--density[kg/m3] viscosity[kg/(ms)]-->
 
 	<visual>
 		<headlight diffuse="0.6 0.6 0.6" ambient="0.5 0.5 0.5" specular="1 1 1"/>
@@ -77,6 +77,11 @@
 	</sensor>
 
 	<actuator>
+<!--		<motor name="motor1" site="thrust1" gear="0 0 1 0 0 1" ctrlrange="0 10"/> &lt;!&ndash;CCW&ndash;&gt;-->
+<!--		<motor name="motor2" site="thrust2" gear="0 0 1 0 0 -1" ctrlrange="0 10"/> &lt;!&ndash;CW&ndash;&gt;-->
+<!--		<motor name="motor3" site="thrust3" gear="0 0 1 0 0 1" ctrlrange="0 10"/> &lt;!&ndash;CCW&ndash;&gt;-->
+<!--		<motor name="motor4" site="thrust4" gear="0 0 1 0 0 -1" ctrlrange="0 10"/> &lt;!&ndash;CW&ndash;&gt;-->
+
 		<motor name="motor1" site="thrust1" gear="0 0 1 0 0 1"/> <!--CCW-->
 		<motor name="motor2" site="thrust2" gear="0 0 1 0 0 -1"/> <!--CW-->
 		<motor name="motor3" site="thrust3" gear="0 0 1 0 0 1"/> <!--CCW-->

@@ -1,5 +1,7 @@
-1) pri takovem nastaveni fungule, ale nerealisticky a s inf. silami na motorech
+1) Pri takovem nastaveni fungule, ale nakloneni kvadrokoptery je male. Mohlo by se vice otacet
 # PID_F_cmd = PID(dt, 8.92390432404577, 2.25471500348612, 8.67284220431323)
 # PID_phi_desired = PID(dt, -0.00323096272986417, -1.0967929328284e-05, -0.0313597401851494, umax=np.pi/2, umin=-np.pi/2)
 # PID_angle_cmd = PID(dt, 0.122982000274937, 0.00445840861689157, 0.833002920844437)
+
+2)
 

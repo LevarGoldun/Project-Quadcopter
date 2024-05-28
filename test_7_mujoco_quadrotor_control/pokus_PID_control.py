@@ -3,6 +3,7 @@ import mujoco.viewer  # p.s. high-level, more user-friendly and abstract interfa
 import time
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.spatial.transform import Rotation  # pro vypocet uhlu Eulera z kvaternionu
 
 
 # ===========================================POMOCNE FUNKCE=============================================================
@@ -27,15 +28,15 @@ class PID:  # https://thingsdaq.org/2022/04/07/digital-pid-controller/
         # Calculating proportional term
         up = self._kp * (e - self._eprev[0])
         # Calculating integral term (with anti-windup)
-        ui = self._ki*self._Ts * e
+        ui = self._ki * self._Ts * e
         if (self._uprev >= self._umax) or (self._uprev <= self._umin):
             ui = 0
         # Calculating derivative term
-        ud = self._kd/self._Ts * (e - 2*self._eprev[0] + self._eprev[1])
+        ud = self._kd / self._Ts * (e - 2 * self._eprev[0] + self._eprev[1])
         # Filtering derivative term
         udfilt = (
-            self._tau/(self._tau+self._Ts)*self._udfiltprev +
-            self._Ts/(self._tau+self._Ts)*ud
+                self._tau / (self._tau + self._Ts) * self._udfiltprev +
+                self._Ts / (self._tau + self._Ts) * ud
         )
         # Calculating PID controller output u[n]
         u = self._uprev + up + ui + udfilt
@@ -85,18 +86,20 @@ def print_cam_param(permit, camera):
         # vytup z funkce napsat v nastaveni parametru kamery
 
 
-def controller(mj_model, mj_data):
+def controller(mj_model, mj_data, z_ref, x_ref):
     z_actual = mj_data.geom('zakladna').xpos[2]  # Z poloha kvadrokoptery
     x_actual = mj_data.geom('zakladna').xpos[0]  # X poloha kvadrokoptery
 
-    F_cmd = PID_F_cmd.control(4, z_actual)  # pozadovana vyska z
-    phi_desired = PID_phi_desired.control(-5, x_actual)  # pozadovana poloha x --> pozadovany naklon kvadrokoptery
-    # vystupem PID_phi_desired jsou radiany
+    F_cmd = PID_F_cmd.control(z_ref, z_actual)  # pozadovana vyska z
 
-    # Chci pohybovat v rovice XY, tzn. kolma osa k teto rovine je Y --> uhel pitch
-    [roll, pitch] = roll_pitch_calculation(mj_model, mj_data)
-    angle_cmd = -1*PID_angle_cmd.control(phi_desired, pitch*np.pi/180)
-    # minus, protoze kladny smer X je v jinem smeru nez v Simulink
+    phi_desired = -1*PID_phi_desired.control(x_ref, x_actual)  # pozadovana poloha x --> pozadovany naklon kvadrokoptery
+    # vystupem PID_phi_desired jsou radiany; minus, protoze kladny smer X je v jinem smeru nez v Simulink
+
+    # Chci pohybovat v rovice XY, tzn. kolma osa k teto rovine je Y --> merime nakloneni kvadrokoptery pitch
+    # [roll, pitch] = roll_pitch_calculation(mj_model, mj_data)  # pocita z hodnot akceleromentu-->velky sum
+    [roll, pitch] = roll_pitch_calculation_scipy(mj_model, mj_data)  # z kvaternionu-->lepsi kvalita dat
+
+    angle_cmd = PID_angle_cmd.control(phi_desired, pitch * np.pi / 180)
 
     F1 = F_cmd + angle_cmd
     F2 = F_cmd - angle_cmd
@@ -110,12 +113,12 @@ def controller(mj_model, mj_data):
     # ____*____
 
     # motor 1 a motor 2 budou mit silu "F2" jako v Simulink
-    data.ctrl[0] = F2
-    data.ctrl[1] = F2
+    data.ctrl[0] = F2/2
+    data.ctrl[1] = F2/2
 
     # motor 3 a motor 4 budou mit silu "F1"
-    data.ctrl[2] = F1
-    data.ctrl[3] = F1
+    data.ctrl[2] = F1/2
+    data.ctrl[3] = F1/2
 
 
 def roll_pitch_calculation(mj_model, mj_data):
@@ -127,8 +130,24 @@ def roll_pitch_calculation(mj_model, mj_data):
     """
     # rotation sequence Rxyz
     [X, Y, Z] = sensor_data_by_name(mj_model, mj_data, "akcelerometr")
-    roll = np.arctan2(Y, Z) * 180/np.pi  # x axis
-    pitch = np.arctan2(-X, np.sqrt(Y*Y + Z*Z)) * 180/np.pi  # y axis
+    roll = np.arctan2(Y, Z) * 180 / np.pi  # x axis
+    pitch = np.arctan2(-X, np.sqrt(Y * Y + Z * Z)) * 180 / np.pi  # y axis
+    return round(roll, 3), round(pitch, 3)
+
+
+def roll_pitch_calculation_scipy(mj_model, mj_data):
+    """
+    Calculating roll and pitch from quaternions
+    :param mj_model:
+    :param mj_data:
+    :return: roll and pitch in degrees !!!
+    """
+    # teleso "kvadrokoptera" ma index radku 1
+    quat = mj_data.xquat[1][:]  # vystupem jsou quaternions
+    r = Rotation.from_quat([quat[1], quat[2], quat[3], quat[0]])  # SciPy pouziva poradi [x, y, z, w]
+    euler_angles = r.as_euler('xyz', degrees=True)
+    roll = euler_angles[0]
+    pitch = euler_angles[1]
     return round(roll, 3), round(pitch, 3)
 
 
@@ -136,41 +155,42 @@ def roll_pitch_calculation(mj_model, mj_data):
 
 
 # ==============================================NASTAVENI===============================================================
-xml_path = 'model_quadcopter_v1.3.xml'  # xml file (assumes this is in the same folder as this file)
+xml_path = 'model_quadcopter_v1.4.xml'  # xml file (assumes this is in the same folder as this file)
 model = mj.MjModel.from_xml_path(xml_path)  # MuJoCo model
 data = mj.MjData(model)  # MuJoCo data
 viewer = mujoco.viewer.launch_passive(model, data)  # with mujoco.viewer.launch_passive(model, data) as viewer
 
-simend = 500  # simulation time
+simend = 50  # simulation time
 dt = model.opt.timestep  # dano nastavenim .XML souboru
 
 # Example on how to set camera configuration
 cam = viewer.cam
-cam.azimuth = -128.6
-cam.elevation = -38.1
-cam.distance = 9.4
-cam.lookat = [0.075, 0.459, 1.927]
+cam.azimuth = -127.8
+cam.elevation = -44
+cam.distance = 18
+cam.lookat = [-0.18, 0.66, 7.09]
 
 # Nejake pocatecni podminky
-#data.ctrl[0:3+1] = (3.3*9.81)/4  # sila pro udrzeni kvadrokoptery, 4F=Mg (p.s. celkova hmotnost 3.3 kg]
+data.ctrl[0:3 + 1] = (3.8 * 9.81) / 4*0.99  # sila pro udrzeni kvadrokoptery, 4F=Mg (p.s. celkova hmotnost 3.3 kg)
+
 
 # pri takovem nastaveni fungule, ale nerealisticky a s inf. silami.
-PID_F_cmd = PID(dt, 8.92390432404577, 2.25471500348612, 8.67284220431323)
-PID_phi_desired = PID(dt, -0.00323096272986417, -1.0967929328284e-05, -0.0313597401851494, umax=np.pi/2, umin=-np.pi/2)
-PID_angle_cmd = PID(dt, 0.122982000274937, 0.00445840861689157, 0.833002920844437)
+PID_F_cmd = PID(dt, 8.92390432404577, 2.25471500348612, 8.67284220431323, umin=0, umax=20)
+PID_phi_desired = PID(dt, -0.00323096272986417, -1.0967929328284e-05, -0.0313597401851494, umin=-np.pi/2, umax=np.pi/2)
+PID_angle_cmd = PID(dt, 0.122982000274937, 0.00445840861689157, 0.833002920844437, umin=-5, umax=5)
 
-# =============================================================Data pro Matlab
-M = np.zeros((6, 6))
-mj.mj_fullM(model, M, data.qM)  # matice hmotnosti a setrvacnosti
-#print(M)
+# =============================================================Data pro Matlab==========================================
+# nv = len(data.qvel)
+# M = np.zeros((nv, nv))
+# mj.mj_fullM(model, M, data.qM)  # matice hmotnosti a setrvacnosti
+# print(M)
 
 # pocitam delku od motoru 4 do motoru 2 (vzdalenost 2*L dle Simulink)
 left_position = data.site('thrust4').xpos[0]
 right_position = data.site('thrust2').xpos[0]
-#print("Polovicni delka kvadr.", abs(left_position-right_position)/2)
+# print("Polovicni delka kvadr.", abs(left_position-right_position)/2)
 
-# ==============================================================
-
+# ======================================================================================================================
 
 
 # matice pro ukladani dat
@@ -196,19 +216,35 @@ while viewer.is_running() and data.time < simend:
     step_start = time.time()
 
     # ==================================Program=========================================================================
-    controller(model, data)
+    if data.time < 10:
+        zref = 8
+        xref = 0
+    elif data.time < 20:
+        zref = 15
+        xref = 10
+    elif data.time < 25:
+        zref = 8
+        xref = 10
+    elif data.time < 30:
+        zref = 10
+        xref = -5
+    elif data.time < 40:
+        zref = 12
+        xref = -5
+
+    controller(model, data, zref, xref)
 
     times.append(data.time)
 
     positions.append(data.geom('zakladna').xpos.copy())  # poloha kvadrokoptery
-    angles.append(roll_pitch_calculation(model, data))
+    angles.append(roll_pitch_calculation_scipy(model, data))  # z kvaternionu presneji uhly
 
     accel.append(sensor_data_by_name(model, data, "akcelerometr"))
     speed.append(sensor_data_by_name(model, data, "mereni rychlosti"))
     angspeed.append(sensor_data_by_name(model, data, "gyroskop"))
     force.append(sensor_data_by_name(model, data, "senzor sily"))
     torque.append(sensor_data_by_name(model, data, "senzor momentu"))
-    z_distance.append(sensor_data_by_name(model, data, "senzor vzdalenosti"))
+    # z_distance.append(sensor_data_by_name(model, data, "senzor vzdalenosti"))
 
     # ==============================Program konec=======================================================================
 
@@ -222,7 +258,7 @@ while viewer.is_running() and data.time < simend:
     # Rudimentary time keeping, will drift relative to wall clock.
     time_until_next_step = dt - (time.time() - step_start)
     if time_until_next_step > 0:
-        time.sleep(time_until_next_step/10)
+        time.sleep(time_until_next_step / 10000)
 # =======================================KONEC CYKLUS===================================================================
 
 # porovnani casu konani programu a casu v simulaci
@@ -244,22 +280,22 @@ plt.plot(times, positions, label=['x', 'y', 'z'])
 plt.title('Object Position Over Time')
 plt.legend()
 plt.show()
-#
-# # roll a pitch
-# plt.figure()
-# angles = np.array(angles)
-# plt.plot(times, angles, label=['roll [deg]', 'pitch[deg]'])
-# plt.title('Orientation Over Time')
-# plt.legend()
-# plt.show()
-#
-# # zrychleni
+
+# roll a pitch
 plt.figure()
-accel = np.array(accel)
-plt.plot(times, accel, label=["ax", "ay", "az"])
-plt.title("Akcelerometr")
+angles = np.array(angles)
+plt.plot(times, angles, label=['roll [deg]', 'pitch[deg]'])
+plt.title('Orientation Over Time')
 plt.legend()
 plt.show()
+#
+# # zrychleni
+# plt.figure()
+# accel = np.array(accel)
+# plt.plot(times, accel, label=["ax", "ay", "az"])
+# plt.title("Akcelerometr")
+# plt.legend()
+# plt.show()
 #
 # # rychlost
 # plt.figure()
