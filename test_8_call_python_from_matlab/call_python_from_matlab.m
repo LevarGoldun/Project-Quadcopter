@@ -1,4 +1,4 @@
-% propojENI virtualni prostredi meho projektu (.venv) a Matlab
+% propojeni virtualni prostredi meho projektu (.venv) a Matlab
 %pyenv('Version','D:\Пользователи\Admin\Документы\CVUT\_Magistersky projekt\Project-Quadcopter\.venv\Scripts\python.exe')
 %% 1. Volani jednoducheho python skriptu
 %chceme na vystup ze skriptu promennou L1
@@ -47,3 +47,16 @@ result = pyrunfile("test_libraries.py", "ReturnList", A=A1converted, B=A2convert
 %jaky typ vracene promenne
 class(result)
 class(result{1})
+
+%% 5. Spusteni skriptu s kvadrokopterou, ale nejjednodusi
+% skript z ...\test_1\test_spusteni.py
+
+% cesta do xml modelu kvadrokoptery
+xml_cesta = "D:\Пользователи\Admin\Документы\CVUT\_Magistersky projekt\Project-Quadcopter\test_1\model_quadcopter_v1.xml";
+
+% vystupem je cas simulace
+%t_start = pyrunfile("D:\Пользователи\Admin\Документы\CVUT\_Magistersky projekt\Project-Quadcopter\test_1\test_spusteni.py", "start", xml_path=xml_cesta);
+[t_start, sim_data] = pyrunfile("D:\Пользователи\Admin\Документы\CVUT\_Magistersky projekt\Project-Quadcopter\test_1\test_spusteni.py", ["start", "data"], xml_path=xml_cesta);
+
+disp("t_start="+num2str(t_start))
+disp("cas simulace: "+num2str(py.time.time()-t_start))

@@ -26,6 +26,20 @@ hodnoty pozadovanych promennych zpet
 
 4. Kontrola, ze muzu spustit [test_libraries.py](test_libraries.py) skrip s knihovnami
 
+5. Spusteni skriptu s kvadrokopterou [test_spusteni.py](..%2Ftest_1%2Ftest_spusteni.py) 
+z test_1. Musel jsem behem pokusu drobne zmenit skript, a to okomentovanim nazvu xml souboru
+a zmensit cas simulace do 10 s. Vstupem v `pyrun()` byla promenna `xml_path` s globalni cestou
+do xml souboru kvadrokoptery, na vystup jsem dal promennou `start`, ktera obsahuje cas
+spusteni skriptu (`start=time.time()`). MuJoCo se spustil, kvadrkoptera "letala" 10 s a
+po skonceni skriptu dostal jsem hodnotu premenne.  
+ Dale jsem dal na vystup promennou `data`, která obsahuje veskerou informaci o simulaci.
+Samozrejme pozatim obsahuje posledni data (hodnoty) pred skoncenim skriptu (simulace), presto
+muzu mit pristup k atributum promenne `data` v Matlab. 
+
+
 Aktualni problem je, ze musime se dockat skonceni skriptu a az potom 
 muzeme mit pristup k pozadovanym promennym .py skriptu. Potrebuju, abych
 mohl mit pristup k promennym (posilat a ziskavat hodnoty) **"realtime"**.
+|
+V
+test_9
