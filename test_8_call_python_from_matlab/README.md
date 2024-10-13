@@ -16,7 +16,6 @@ _Magistersky projekt\Project-Quadcopter\.venv\Scripts\python.exe')`.
 Delame 1x pri "prvnim" spusteni Matlabu, cesta je zachovana i pro dalsi seance Matlab
 
 
-
 1. Spusteni .py skriptu pomoci `myListFile = pyrunfile(file, outputs)`, vice [mklist.py](mklist.py)
 2. Co bude, kdyz spustip [loops.py](loops.py) skript se smyckou? **NEPUSTIT SKRIPT S NEKONECNOU SMYCKOU**  
     Skript se spusti-->smycka se skonci-->az potom dostavam hodnotu promenne
@@ -39,7 +38,13 @@ muzu mit pristup k atributum promenne `data` v Matlab.
 
 Aktualni problem je, ze musime se dockat skonceni skriptu a az potom 
 muzeme mit pristup k pozadovanym promennym .py skriptu. Potrebuju, abych
-mohl mit pristup k promennym (posilat a ziskavat hodnoty) **"realtime"**.
-|
-V
-test_9
+mohl mit pristup k promennym (posilat a ziskavat hodnoty) **"realtime"**.  
+ |  
+ |  
+ V  
+### Python server, Matlab client, TCP/IP
+* **ChatGPT doporucil udelat Python jako server a Matlab klientem**, ktery bude posilat
+dotazy. Predbezne to funguje jak ja chci, ale potrebuje doladeni: Matlab si nemuze spravne 
+precist soket, velky pocet soketu za vterinu atd.
+* Zaprve musime spustit server [python_server.py](python_server.py), pak spustit
+program [matlab_client.m](matlab_client.m).
