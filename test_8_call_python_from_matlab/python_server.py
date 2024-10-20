@@ -4,6 +4,7 @@ import mujoco.viewer
 
 import socket  # TCP communication
 import select  # Are there any sockets
+import json  # To convert Python dictionary into a friendly format
 
 # Server settings
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -58,19 +59,30 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
             # Send data to MATLAB
             if step_start - last_time > 0.1 and acknowledged:
                 last_time = step_start
-                data_to_send = str(data.time)
-                client_socket.sendall(data_to_send.encode('utf-8'))
+
+                # Forming a data dictionary
+                data_to_send = {
+                    "simulation time": data.time,
+                    "number of position coordinates": model.nq,
+                    "number of degrees of freedom": model.nv,
+                    "Nothing": 'NaN'
+                }
+                # Convert the dictionary to a JSON string
+                json_data_to_send = json.dumps(data_to_send)
+                client_socket.sendall(json_data_to_send.encode('utf-8'))
                 acknowledged = False  # Waiting for confirmation after sending
 
         # Check if a message has arrived from the client
         ready_to_read, _, _ = select.select([client_socket], [], [], 0)
         if ready_to_read:
             get = client_socket.recv(1024).decode('utf-8')  # Read
-            if get == 'OK':  # expected response from Matlab
-                acknowledged = True
-
+            json_str = json.loads(get)
+            if 'command' in json_str:
+                if json_str['command'] == 'OK':  # expected response from Matlab
+                    acknowledged = True
             else:
-                number = int(get)
+                print(json_str['RandomText'])
+                number = json_str['MotorSignal']
                 print(number)
                 data.ctrl = [number, number, number, number]
 

@@ -44,7 +44,8 @@ mohl mit pristup k promennym (posilat a ziskavat hodnoty) **"realtime"**.
  V  
 ### Python server, Matlab client, TCP/IP
 * **ChatGPT doporucil udelat Python jako server a Matlab klientem**, ktery bude posilat
-dotazy. Predbezne to funguje jak ja chci, ale potrebuje doladeni: ~~Matlab si nemuze spravne 
-precist soket, velky pocet soketu za vterinu atd.~~
+dotazy. Predbezne to funguje jak ja chci, ale potrebuje doladeni: Matlab si nemuze spravne 
+precist soket, velky pocet soketu za vterinu atd.
 * Zaprve musime spustit server [python_server.py](python_server.py), pak spustit
 program [matlab_client.m](matlab_client.m), dale magic 
+* Pokracovan v testu 8.5

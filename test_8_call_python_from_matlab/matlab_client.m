@@ -24,31 +24,43 @@ end
 % Ziskava cas simulace z promenne data.time v Python a meni parametry
 % vrtule kvadrokoptery (moment) kazde 2 sekundy.
 
-
 try
 while true
-    % Cteni dat z MuJoCo kazdou 1 s
+    % Cteni dat z MuJoCo kazdou ? s
     pause(0.5);
-    if tcpObj.NumBytesAvailable > 0
-        response = read(tcpObj);
-        response_text = native2unicode(response, 'UTF-8');
-        disp(['Python: ', response_text]);
+    while true
+        if tcpObj.NumBytesAvailable > 0
+            get = read(tcpObj);
+            json_str = native2unicode(get, 'UTF-8');
+            % Transformace JSON string v strukturu Matlab
+            data = jsondecode(json_str);
+            
+            disp('Python:')
+            disp(data);
+    
+            % Posilame potvrzeni prijeti serveru
+            write(tcpObj, unicode2native(jsonencode(struct('command', 'OK')), 'UTF-8'), 'uint8');
+            break
+        end
+    end
 
-        % Posilame potvrzeni prijeti serveru
-        write(tcpObj, unicode2native('OK', 'UTF-8'), 'uint8');
-    end
     % Kazde 2 sekundy simulace menime velikost momentu na motorech kvadrokoptery
-    if floor(mod(str2double(response_text), 2))
-        write(tcpObj, unicode2native('10', 'UTF-8'), 'uint8');
+    if floor(mod(data.simulationTime, 2))
+        moment = 10;
     else
-        write(tcpObj, unicode2native('5', 'UTF-8'), 'uint8');
+        moment = 5;
     end
+    
+    data_to_send = struct('MotorSignal', moment, 'RandomText', 'Wanna know how i got these scars?');
+    json_str_send = jsonencode(data_to_send);
+    send = unicode2native(json_str_send, 'UTF-8');
+    write(tcpObj, send, 'uint8');
 
 end
 catch exception
     disp(exception.message);
+    % Uzavreni spojeni
+    clear tcpClient;
 end
 
-
-% Uzavreni spojeni
-clear tcpClient;
+clear response_text % pro kontrolu...
