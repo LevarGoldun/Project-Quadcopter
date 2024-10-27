@@ -94,7 +94,7 @@ server_socket.listen(1)
 print("Waiting for connection with MATLAB...")
 client_socket, addr = server_socket.accept()
 print(f"Connected to {addr}")
-client_socket.setblocking(False)  # Set non-blocking mode
+#client_socket.setblocking(False)  # Set non-blocking mode
 
 # Test connection with Matlab
 while True:
@@ -201,7 +201,6 @@ while viewer.is_running() and data.time < simend:
         else:
             F1 = json_str['F1']
             F2 = json_str['F2']
-            print('F1:', F1)
 
             # motor 1 a motor 2 budou mit silu "F2" jako v Simulink
             data.ctrl[0] = F2 / 2

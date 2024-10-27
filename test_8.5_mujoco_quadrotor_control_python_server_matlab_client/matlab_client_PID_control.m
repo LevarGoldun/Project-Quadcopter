@@ -52,6 +52,8 @@ PID_F_cmd = my_function_pid(dt, 8.92390432404577, 2.25471500348612, 8.6728422043
 PID_phi_desired = my_function_pid(dt, -0.00323096272986417, -1.0967929328284e-05, -0.0313597401851494, pi/2, -pi/2);
 PID_angle_cmd = my_function_pid(dt, 0.122982000274937, 0.00445840861689157, 0.833002920844437, 5, -5);
 
+dt_new = dt;
+
 % ПОКА ЕСТЬ МЫСЛЬ...А С КАКОЙ dt ПРОВОДИТЬ РАСЧЕТ? МАТЛАБ И ПАЙТОН 
 % РАБОТАЮТ АСИНХРОННО... -->использовать вообще другое dt и компенировать
 % его с помощью tic, toc !!! Разобраться !!!
@@ -59,6 +61,7 @@ PID_angle_cmd = my_function_pid(dt, 0.122982000274937, 0.00445840861689157, 0.83
 %======================HLAVNI PROGRAM======================================
 try
 while true
+    tic
     %-----------------Cteni dat z MuJoCo kazdou ? s------------------------
     pause(0.5);
     while true
@@ -103,9 +106,20 @@ while true
         z_ref = 12;
         x_ref = -5;
     end
+    
+    % Korigovani dt v PID regulatorech
+    % PID_F_cmd.Ts = abs(dt_new);
+    % PID_phi_desired.Ts = abs(dt_new);
+    % PID_angle_cmd.Ts = abs(dt_new);
+    PID_F_cmd.Ts = abs(0.1);
+    PID_phi_desired.Ts = abs(0.1);
+    PID_angle_cmd.Ts = abs(0.1);
 
     % Kaskadova smycka
+    disp(["z_actual ", num2str(z_actual)])
     F_cmd = PID_F_cmd.control(z_ref, z_actual);
+    disp(["F_cmd ", num2str(F_cmd)])
+
     phi_desired = -1*PID_phi_desired.control(x_ref, x_actual);
     [roll, pitch] = roll_pitch_calculation(transpose(data.quaternions));
     angle_cmd = PID_angle_cmd.control(phi_desired, pitch*pi/180);
@@ -125,13 +139,40 @@ while true
     m_positions = [m_positions; transpose(position)];
     m_angles = [m_angles; [roll, pitch]];
     m_pid_out = [m_pid_out; [F_cmd, phi_desired, angle_cmd]];
+
+    dt_new=toc;
 end
 catch exception
-    disp(exception.message);
+    disp(exception);
     % Uzavreni spojeni
     clear tcpClient;
 end
 %=====================KONEC HLAVNI PROGRAM=================================
 
-% Vizualizace vysledku
-plot(m_data, m_pid_out)
+%% Vizualizace vysledku
+% Vystupy z PID
+figure;
+plot(m_times, m_pid_out);
+title('PIDs outputs');
+legend('F_{cmd}', 'phi_{desired}', 'angle_{cmd}');
+xlabel('Time [s]');
+ylabel('PID Output');
+grid on;
+
+% Pozice kvadrokoptery
+figure;
+plot(m_times, m_positions);
+title('Object Position Over Time');
+legend('x', 'y', 'z');
+xlabel('Time [s]');
+ylabel('Position');
+grid on;
+
+% Ulhy roll a pitch
+figure;
+plot(m_times, m_angles);
+title('Orientation Over Time');
+legend('roll [deg]', 'pitch [deg]');
+xlabel('Time [s]');
+ylabel('Angle [deg]');
+grid on;
