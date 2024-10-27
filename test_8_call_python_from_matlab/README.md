@@ -48,4 +48,4 @@ dotazy. Predbezne to funguje jak ja chci, ale potrebuje doladeni: Matlab si nemu
 precist soket, velky pocet soketu za vterinu atd.
 * Zaprve musime spustit server [python_server.py](python_server.py), pak spustit
 program [matlab_client.m](matlab_client.m), dale magic 
-* Pokracovan v testu 8.5
+* Pokracovani v testu 8.5
