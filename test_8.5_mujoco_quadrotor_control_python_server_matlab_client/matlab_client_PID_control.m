@@ -22,7 +22,7 @@ end
 %==============NEJAKA POCATECNI NASTAVENI==================================
 % Cekame na dt z Python (jeste nevim k cemu budu potrebovat)
 while true
-    pause(1)
+    pause(0.5)
     try
     if tcpObj.NumBytesAvailable > 0
         get = native2unicode(read(tcpObj), 'UTF-8');
@@ -68,8 +68,8 @@ while true
             % Transformace JSON string v strukturu Matlab
             data = jsondecode(json_str);
             
-            disp('Python:')
-            disp(data);
+            %disp('Python:')
+            %disp(data);
     
             % Posilame potvrzeni prijeti serveru
             write(tcpObj, unicode2native(jsonencode(struct('command', 'OK')), 'UTF-8'), 'uint8');
@@ -84,30 +84,30 @@ while true
     y_actual = position(2);
     z_actual = position(3);
     
-    sim_time = data.time; % Cas v simulaci MuJoCo
+    sim_time = data.simulationTime; % Cas v simulaci MuJoCo
 
     % Menime pozadovanou polohu kvadrokoptery
     if sim_time < 10
-        zref = 8;
-        xref = 0;
+        z_ref = 8;
+        x_ref = 0;
     elseif sim_time < 20
-        zref = 15;
-        xref = 10;
+        z_ref = 15;
+        x_ref = 10;
     elseif sim_time < 25
-        zref = 8;
-        xref = 10;
+        z_ref = 8;
+        x_ref = 10;
     elseif sim_time < 30
-        zref = 10;
-        xref = -5;
+        z_ref = 10;
+        x_ref = -5;
     elseif sim_time < 40
-        zref = 12;
-        xref = -5;
+        z_ref = 12;
+        x_ref = -5;
     end
 
     % Kaskadova smycka
     F_cmd = PID_F_cmd.control(z_ref, z_actual);
     phi_desired = -1*PID_phi_desired.control(x_ref, x_actual);
-    [roll, pitch] = roll_pitch_calculation(data.quaternions);
+    [roll, pitch] = roll_pitch_calculation(transpose(data.quaternions));
     angle_cmd = PID_angle_cmd.control(phi_desired, pitch*pi/180);
     % Sily na motorech kvadrokoptery (posilame do Python)
     F1 = F_cmd + angle_cmd;
@@ -121,8 +121,8 @@ while true
     write(tcpObj, send, 'uint8');
 
     %--------------------Ukladani dat--------------------------------------
-    m_time = [m_time, sim_time];
-    m_positions = [m_positions; position];
+    m_times = [m_times, sim_time];
+    m_positions = [m_positions; transpose(position)];
     m_angles = [m_angles; [roll, pitch]];
     m_pid_out = [m_pid_out; [F_cmd, phi_desired, angle_cmd]];
 end
@@ -134,3 +134,4 @@ end
 %=====================KONEC HLAVNI PROGRAM=================================
 
 % Vizualizace vysledku
+plot(m_data, m_pid_out)

@@ -9,7 +9,6 @@ import socket  # TCP communication
 import select  # Are there any sockets
 import json  # To convert Python dictionary into a friendly format
 
-
 # ===========================================POMOCNE FUNKCE=============================================================
 def sensor_data_by_name(mj_model, mj_data, sensor_name):
     """
@@ -119,7 +118,7 @@ viewer = mujoco.viewer.launch_passive(model, data)  # with mujoco.viewer.launch_
 simend = 500  # simulation time
 dt = model.opt.timestep  # dano nastavenim .XML souboru
 client_socket.sendall(str(dt).encode('utf-8'))  # Posilame dt do Matlab
-time.sleep(0.5)
+time.sleep(1)
 
 # Example on how to set camera configuration
 cam = viewer.cam
@@ -181,9 +180,10 @@ while viewer.is_running() and data.time < simend:
 
         # Forming a data dictionary (what we want to send)
         data_to_send = {
-            "simulation time": data.time,
-            "position": data.geom('zakladna').xpos.copy(),
-            "quaternions": data.xquat[1][:],
+            "simulationTime": data.time,
+            # NumPy array is not JSON serializable -> convert using .tolist()
+            "position": (data.geom('zakladna').xpos.copy()).tolist(),
+            "quaternions": (data.xquat[1][:]).tolist(),
         }
         # Convert the dictionary to a JSON string
         json_data_to_send = json.dumps(data_to_send)
@@ -201,6 +201,7 @@ while viewer.is_running() and data.time < simend:
         else:
             F1 = json_str['F1']
             F2 = json_str['F2']
+            print('F1:', F1)
 
             # motor 1 a motor 2 budou mit silu "F2" jako v Simulink
             data.ctrl[0] = F2 / 2
@@ -235,36 +236,36 @@ while viewer.is_running() and data.time < simend:
     # Rudimentary time keeping, will drift relative to wall clock.
     time_until_next_step = dt - (time.time() - step_start)
     if time_until_next_step > 0:
-        time.sleep(time_until_next_step / 10)
+        time.sleep(time_until_next_step / 1)
 # =======================================KONEC CYKLUS===================================================================
 
-# porovnani casu konani programu a casu v simulaci
+# Comparison of program and simulation time
 print("Real time:", round(time.time() - start, 2))
 print("Data.time:", round(data.time, 2), ", dt:", dt)
-
-# data z PID
-plt.figure()
-pid_out = np.array(pid_out)
-plt.plot(times, pid_out, label=['F_cmd', 'phi_desired', 'angle_cmd'])
-plt.title('PIDs outputs')
-plt.legend()
-plt.show()
-
-# poloha
-plt.figure()
-positions = np.array(positions)
-plt.plot(times, positions, label=['x', 'y', 'z'])
-plt.title('Object Position Over Time')
-plt.legend()
-plt.show()
-
-# roll a pitch
-plt.figure()
-angles = np.array(angles)
-plt.plot(times, angles, label=['roll [deg]', 'pitch[deg]'])
-plt.title('Orientation Over Time')
-plt.legend()
-plt.show()
+#
+# # data z PID
+# plt.figure()
+# pid_out = np.array(pid_out)
+# plt.plot(times, pid_out, label=['F_cmd', 'phi_desired', 'angle_cmd'])
+# plt.title('PIDs outputs')
+# plt.legend()
+# plt.show()
+#
+# # poloha
+# plt.figure()
+# positions = np.array(positions)
+# plt.plot(times, positions, label=['x', 'y', 'z'])
+# plt.title('Object Position Over Time')
+# plt.legend()
+# plt.show()
+#
+# # roll a pitch
+# plt.figure()
+# angles = np.array(angles)
+# plt.plot(times, angles, label=['roll [deg]', 'pitch[deg]'])
+# plt.title('Orientation Over Time')
+# plt.legend()
+# plt.show()
 #
 # # zrychleni
 # plt.figure()
