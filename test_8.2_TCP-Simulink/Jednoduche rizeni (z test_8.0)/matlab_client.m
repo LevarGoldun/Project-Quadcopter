@@ -1,0 +1,107 @@
+% Matlab/Simulink je klient, Python je server (v nem bezi MuJoCo)
+open_system('simulink_control_client.slx');
+pause(1)
+
+% Vytvoreni TCP komunikace
+tcpObj = tcpclient('localhost', 65432, 'ConnectTimeout', 10);
+
+% Testove spojeni s Python
+send = "Hello";
+write(tcpObj, unicode2native(send, 'UTF-8'), 'uint8');
+while true
+    %pause(0.5);
+    try
+    if tcpObj.NumBytesAvailable > 0
+        get = native2unicode(read(tcpObj), 'UTF-8');
+        if get == "Ahoj"
+            disp(['Python: ', get]);
+            break % Pokud je vsechno ok, tak vystupujeme z cyklu
+        end
+    end
+    %disp("Waiting...")
+    catch exception
+        disp(exception.message);
+    end
+end
+
+
+
+%-------------------------Nastaveni simulace-------------------------------
+% Cteme krok simulace z Python
+while true
+    if tcpObj.NumBytesAvailable > 0
+        timestep = str2double( native2unicode(read(tcpObj), 'UTF-8') );
+        disp(['Krok simulace: ', num2str(timestep), ' s'])
+        break
+    end
+end
+
+% Nastavujeme 'Fixed-step size' v Simulink a resic
+set_param(gcs,'SolverType','Fixed-step','FixedStep',num2str(timestep))
+set_param(gcs,'Solver','ode4') % Runge-Kutta
+
+% Posilame celkovy cas simulace do Python
+simtime = 30; %[s]
+write(tcpObj, unicode2native(num2str(simtime), 'UTF-8'), 'uint8');
+disp(['Cas simulace: ', num2str(simtime), ' s'])
+
+% Nstavujeme 'Stop Time' v Simulink
+set_param(gcs,'StopTime', num2str(simtime))
+
+% !!! TOHLE JE KLICOVA VEC PRO POUZITI SIMULINK !!!
+% start simulation and pause simulation, waiting for signal from python
+set_param(gcs,'SimulationCommand','start','SimulationCommand','pause');
+%--------------------------------------------------------------------------
+
+
+
+%======================HLAVNI PROGRAM======================================
+% Ziskava cas simulace z promenne data.time v Python a meni parametry
+% vrtule kvadrokoptery (moment) kazde 2 sekundy. 
+% Rizeni probiha v Simulink
+
+try
+for i=0:timestep:simtime
+    % Tato pauze reguluje rychlost simulace
+    % pause(60/size(0:timestep:simtime, 2));
+    
+    % TCP sending
+    moment = out.moment.Data(end,:);
+    RandomText = out.RandomText.Data(end, :);
+
+    data_to_send = struct('MotorSignal', moment, 'RandomText', RandomText);
+    json_str_send = jsonencode(data_to_send);
+    send = unicode2native(json_str_send, 'UTF-8');
+    write(tcpObj, send, 'uint8');
+    
+    % TCP receiving
+    while true
+        if tcpObj.NumBytesAvailable > 0
+            get = read(tcpObj);
+            json_str = native2unicode(get, 'UTF-8');
+            % Transformace JSON string v strukturu Matlab
+            data = jsondecode(json_str);
+            
+            % disp('Python:')
+            % disp(data);
+            break
+        end
+    end
+    
+    time = data.SimulationTime;
+
+    % set parameter in the simulink model using the data from python
+    set_param('simulink_control_client/time','Value', num2str(time))
+    
+    % run the simulink model for one step
+    set_param(gcs, 'SimulationCommand','step');
+end
+catch exception
+    disp(exception.message);
+    % Uzavreni spojeni
+    clear tcpClient;
+end
+set_param('simulink_control_client/time','Value', '0')
+
+clear response_text % pro kontrolu...
+set_param(gcs,'SimulationCommand','stop');
