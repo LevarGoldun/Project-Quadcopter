@@ -1,3 +1,0 @@
-https://github.com/z1223343/TCP-communication-between-Python-and-Maltab-Simulink?tab=readme-ov-file
-
-P.S. Musel jsem premenovat soubory, protoze vyskytovala drobna chyba
