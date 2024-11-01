@@ -1,5 +1,21 @@
+% 01.11.2024, Praha
+% MATLAB R2024b, PYTHON 3.12
+
 % Matlab/Simulink je klient, Python je server (v nem bezi MuJoCo)
-open_system('simulink_control_client.slx');
+
+%===========!!! Kontrola verze Simulink !!!================================
+v = version;
+if contains(v, 'R2024a')
+    simulink_file_name = 'simulink_control_client_2024a'; %verze 2024a    
+elseif contains(v, 'R2024b')
+    simulink_file_name = 'simulink_control_client'; %verze 2024b (autor)
+else
+    disp('Save the file simulink_control_client.slx to your version')
+end
+clear v
+%==========================================================================
+
+open_system([simulink_file_name, '.slx']);
 pause(1)
 
 % Vytvoreni TCP komunikace
@@ -41,7 +57,7 @@ set_param(gcs,'SolverType','Fixed-step','FixedStep',num2str(timestep))
 set_param(gcs,'Solver','ode4') % Runge-Kutta
 
 % Posilame celkovy cas simulace do Python
-simtime = 30; %[s]
+simtime = 10; %[s]
 write(tcpObj, unicode2native(num2str(simtime), 'UTF-8'), 'uint8');
 disp(['Cas simulace: ', num2str(simtime), ' s'])
 
@@ -60,6 +76,7 @@ set_param(gcs,'SimulationCommand','start','SimulationCommand','pause');
 % vrtule kvadrokoptery (moment) kazde 2 sekundy. 
 % Rizeni probiha v Simulink
 
+tic
 try
 for i=0:timestep:simtime
     % Tato pauze reguluje rychlost simulace
@@ -91,7 +108,7 @@ for i=0:timestep:simtime
     time = data.SimulationTime;
 
     % set parameter in the simulink model using the data from python
-    set_param('simulink_control_client/time','Value', num2str(time))
+    set_param([simulink_file_name,'/time'],'Value', num2str(time))
     
     % run the simulink model for one step
     set_param(gcs, 'SimulationCommand','step');
@@ -101,7 +118,11 @@ catch exception
     % Uzavreni spojeni
     clear tcpClient;
 end
-set_param('simulink_control_client/time','Value', '0')
+%%
+realtime = toc;
+disp("Kokec. Celkovy cas programu "+num2str(realtime)+" s")
+
+set_param([simulink_file_name,'/time'],'Value', '0')
 
 clear response_text % pro kontrolu...
 set_param(gcs,'SimulationCommand','stop');

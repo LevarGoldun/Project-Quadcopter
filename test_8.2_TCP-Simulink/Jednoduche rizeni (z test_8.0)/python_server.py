@@ -45,7 +45,7 @@ print("Time step: " + str(timestep))
 
 # ----------------------------------------MAIN PROGRAM------------------------------------------------------------------
 with mujoco.viewer.launch_passive(model, data) as viewer:
-    while True and viewer.is_running():
+    while data.time < simtime and viewer.is_running():
         with viewer.lock():
             get = client_socket.recv(1024).decode('utf-8')  # Read
             json_str = json.loads(get)
