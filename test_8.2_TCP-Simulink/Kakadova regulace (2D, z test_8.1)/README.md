@@ -10,6 +10,12 @@ souboru kvadrokoptéry. Testoval jsem pro `timestep="0.05"`, `dt="0.01"`, `t="0.
 a střední FPS byl 8-10…
 ale přesto simulace a regulace funguje (na výstupů PIDek jsou skoky, ale lze doladit), i když bych chtěl, aby to bylo rychlejší.
 
+### UPDATE
+Simulace běží normální rychlostí při prvním spuštění serveru a klienta.
+Simulace se začne velmi zpomalovat, když znovu spustíte server a klienta, **BEZ** zavřeli Simulink.
+Pokud Simulink před spuštěním zavřete, kód Matlab ho znovu otevře a simulace poběží normální rychlostí.
+_**Nevím, proč se simulace zpomaluje, pokud se před spuštěním Simulink nezavře.**_
+
 ### Postup spuštění :
 1.	Spustit server [python_server_MuJoCO.py](python_server_MuJoCO.py)
 2.	Spustit Matlab kód [matlab_client.m](matlab_client.m) (Správná verze Simulink se otevře automaticky)

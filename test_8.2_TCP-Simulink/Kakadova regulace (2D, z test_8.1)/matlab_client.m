@@ -125,7 +125,7 @@ catch exception
     % Uzavreni spojeni
     clear tcpClient;
 end
-%%
+
 realtime = toc;
 disp("Konec")
 disp("Celkovy cas programu "+num2str(realtime)+" s")
