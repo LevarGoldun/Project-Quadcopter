@@ -57,7 +57,7 @@ set_param(gcs,'SolverType','Fixed-step','FixedStep',num2str(timestep))
 set_param(gcs,'Solver','ode4') % Runge-Kutta
 
 % Posilame celkovy cas simulace do Python
-simtime = 10; %[s]
+simtime = 50; %[s]
 write(tcpObj, unicode2native(num2str(simtime), 'UTF-8'), 'uint8');
 disp(['Cas simulace: ', num2str(simtime), ' s'])
 

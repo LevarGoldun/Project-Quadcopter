@@ -1,7 +1,7 @@
-<mujoco model="Model quadcopter_v1.3"> <!--v1.4=pridani zaveseneho zavazi-->
+<mujoco model="Model quadcopter_v1.4.1"> <!--v1.4.1=pridani zaveseneho zavazi, ruzne timestep-->
 
 	<statistic center="0 0 0.1" extent="0.6" meansize="0.5"/>
-	<option timestep ="0.01" density="1.205" viscosity="1.8e-5"/> <!--density[kg/m3] viscosity[kg/(ms)]-->
+	<option timestep ="0.05" density="1.205" viscosity="1.8e-5"/> <!--density[kg/m3] viscosity[kg/(ms)]-->
 
 	<visual>
 		<headlight diffuse="0.6 0.6 0.6" ambient="0.5 0.5 0.5" specular="1 1 1"/>

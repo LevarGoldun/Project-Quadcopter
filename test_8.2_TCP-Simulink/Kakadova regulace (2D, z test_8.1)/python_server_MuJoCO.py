@@ -53,7 +53,7 @@ if get == 'Hello':
     time.sleep(0.05)
 
 # MuJoCo settings
-xml_path = 'model_quadcopter_v1.4.xml'
+xml_path = 'model_quadcopter_v1.4.1.xml'
 model = mj.MjModel.from_xml_path(xml_path)  # MuJoCo model
 data = mj.MjData(model)  # MuJoCo data
 viewer = mujoco.viewer.launch_passive(model, data)  # with mujoco.viewer.launch_passive(model, data) as viewer
