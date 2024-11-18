@@ -16,10 +16,17 @@ https://www.youtube.com/watch?v=GK1t8YIvGM8&list=PLPNM6NzYyzYqMYNc5e4_xip-yEu1ji
 
 
 # 3D kaskádové řízení matematické kvadrokoptéry
-Odvodil jsem pohybové rovnice kvadrokoptéry bez závaží a vyzkoušel jsem na ní kaskádovou regulaci pro model v MuJoCo. Překvapivě, ale regulace se neposrala. Ale potřebuje doladění pro matematický model. Asi muže byt problém v:
-* Nastavené koeficienty v [quad_param_3d.m](quad_param_3d.m), jako odpor vzduchu atd
-* Kaskádová regulace generuje “signál” na motory, zatímco pohybové rovnice pracují s otáčkami motoru 
-* Chyba v pohybových rovnicích
+~~Odvodil jsem pohybové rovnice kvadrokoptéry bez závaží a vyzkoušel jsem na ní 
+kaskádovou regulaci pro model v MuJoCo. Překvapivě, ale regulace se neposrala. 
+Ale potřebuje doladění pro matematický model. Asi muže byt problém v:~~
+* ~~Nastavené koeficienty v [quad_param_3d.m](quad_param_3d.m), jako odpor vzduchu atd~~
+* ~~Kaskádová regulace generuje “signál” na motory, zatímco pohybové rovnice pracují s otáčkami motoru~~
+* ~~Chyba v pohybových rovnicích~~
+
+**Nefunguje regulace, nestabilní. Mám potíže s pochopením rotační matice a odkud kam co transformuje, 
+to má vliv na matematický model…**
+
+
 
 ### Postup spuštění :
 1.	Načíst parametry [quad_param_3d.m](quad_param_3d.m)
