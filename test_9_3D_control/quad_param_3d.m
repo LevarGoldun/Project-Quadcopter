@@ -29,7 +29,7 @@ g = 9.81;
 L = 0.086; %[m] polovicni delka kvadrokoptery (rameno od hmotneho bodu)
 k_thrust = 0.1; % koeficient umernosti pro generovani tahove sily
 k = 0.01; % soucinitel odporu vzduchu
-b_moment = 0.1; % koeficient umernosti odporoveho momentu vrtule
+b_moment = 0.01; % koeficient umernosti odporoveho momentu vrtule
 %% Inicializace
 Xinit = [0;0;0;0;0;0;0;0;0;0;0;0];
 %% Rovnice (spis priprava)
@@ -64,3 +64,4 @@ Rw = [1, 0, -sin(pitch);
 
 %I*(dwx;dwy;dwz) + (wx;wy;wz)x(I*(wx;wy;wz) = Tau
 % Tau = (L*k_thrust*() ; L*k_thrust*(); b_moment*() )
+
