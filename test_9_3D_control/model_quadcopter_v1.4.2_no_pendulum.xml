@@ -1,4 +1,4 @@
-<mujoco model="Model quadcopter_v1.4.1"> <!--v1.4.1=pridani zaveseneho zavazi, ruzne timestep-->
+<mujoco model="Model quadcopter_v1.4.2"> <!--v1.4.2=pridani zaveseneho zavazi, ruzne timeste, setrvacnost symetricka a stred hmotnosti posunut-->
 
 	<statistic center="0 0 0.1" extent="0.6" meansize="0.5"/>
 	<option timestep ="0.05" density="1.205" viscosity="1.8e-5"/> <!--density[kg/m3] viscosity[kg/(ms)]-->
@@ -28,7 +28,10 @@
 		<body name="kvadrokoptera" pos="0 0 10">
 			<joint type="free"/>
 			<geom type="box" name="zakladna" size="0.7 0.2 0.1" mass="1" rgba="0.2 0.2 0.2 1"/>
-			<geom type="box" name="podvozek" size="0.5 0.2 0.2" mass="0.5" pos="0 0 -0.3" rgba="0.1 0.1 0.1 1"/>
+			<geom type="box" name="podvozek" size="0.5 0.2 0.2" mass="0" pos="0 0 -0.3" rgba="0.1 0.1 0.1 1"/>
+			<!--hmotnost podvozku 0, aby setrvacnost byla symetricka kolem stredu hmotnosti-->
+			<!---->
+
 			<geom type="box" name="predni strana" size="0.1 0.18 0.05" mass="0" pos="0.7 0 0" rgba="0.86 0 1 1"/>
 			<site name="IMU+other" type="capsule" size="0.1" rgba="1 1 0 1"/> <!--misto umisteni vsech senzoru-->
 			<!--IMU=Inertial measurement unit-->

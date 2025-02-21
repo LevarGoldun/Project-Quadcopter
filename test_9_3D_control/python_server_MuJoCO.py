@@ -54,7 +54,7 @@ if get == 'Hello':
 
 # MuJoCo settings
 # xml_path = 'model_quadcopter_v1.4.1.xml'
-xml_path = 'model_quadcopter_v1.4.1_no_pendulum.xml'
+xml_path = 'model_quadcopter_v1.4.2_no_pendulum.xml'
 
 model = mj.MjModel.from_xml_path(xml_path)  # MuJoCo model
 data = mj.MjData(model)  # MuJoCo data
