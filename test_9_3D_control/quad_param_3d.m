@@ -31,37 +31,12 @@ k_thrust = 0.1; % koeficient umernosti pro generovani tahove sily
 k = 0.01; % soucinitel odporu vzduchu
 b_moment = 0.01; % koeficient umernosti odporoveho momentu vrtule
 %% Inicializace
-Xinit = [0;0;0;0;0;0;0;0;0;0;0;0];
-%% Rovnice (spis priprava)
-% Eulerove uhly, XYZ
-roll = 0;
-pitch = 0;
-yaw = 0;
+xyz_init = [0; 0; 0]; %pp poloha
+uhly_init = [0; 0; 0]; %pp orientace
+xyz_dot_init = [0;0;0];
+uhly_dot_init = [0;0;0];
 
-R_x = [1, 0, 0; 
-       0, cos(roll), -sin(roll);
-       0, sin(roll), cos(roll)];
-
-R_y = [cos(pitch), 0, sin(pitch); 
-       0, 1, 0; 
-      -sin(pitch), 0, cos(pitch)];
-
-R_z = [cos(yaw), -sin(yaw), 0; 
-       sin(yaw), cos(yaw), 0; 
-       0, 0, 1];
-
-R = R_x * R_y * R_z;
-
-% Matice pro transformace derivaci Eulerovych uhlu do uhlove rychlosti
-% v soustave tela (pochopil jsem ji vyznam pomoci ChatGPT)
-Rw = [1, 0, -sin(pitch);
-      0, cos(roll), cos(pitch)*sin(roll);
-      0 -sin(roll), cos(pitch)*cos(roll)];
-
-% m(x;y;z) = (0;0;-mg) + R*TB + FD
-% FD = -k*(dx;dy;dz) odpor vzduchu
-% TB = (0;0;k_thrust*(w1^2+w2^2+w3^2+w4^2)
-
-%I*(dwx;dwy;dwz) + (wx;wy;wz)x(I*(wx;wy;wz) = Tau
-% Tau = (L*k_thrust*() ; L*k_thrust*(); b_moment*() )
+Xinit = [xyz_init; uhly_init; xyz_dot_init; uhly_dot_init]; % pro Newton Euler tvar
+Xinit_matrix = [xyz_init; uhly_init]; % pro maticovy tvar
+Xinit_ss = Xinit;
 
