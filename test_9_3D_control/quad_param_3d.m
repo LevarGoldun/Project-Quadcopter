@@ -39,4 +39,6 @@ uhly_dot_init = [0;0;0];
 Xinit = [xyz_init; uhly_init; xyz_dot_init; uhly_dot_init]; % pro Newton Euler tvar
 Xinit_matrix = [xyz_init; uhly_init]; % pro maticovy tvar
 Xinit_ss = Xinit;
-
+% singularni body pro linearni state-space (pro vypocet delt)
+Xs = [0;0;0; 0;0;0; 0;0;0; 0;0;0];
+Us = [M*g; 0; 0; 0];
