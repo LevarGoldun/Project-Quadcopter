@@ -1,15 +1,16 @@
-% 24.02.2025 (ZATIM NEMENIL JSEM PARAMETRY)
+% 24.02.2025
+% 04.03.2025 - nove parametry pro v2
 % Parametry pro odvozeni_nelin_rovnic_INERTIA_LOAD.mlx a
 % kopter_se_zavazim_simulace.slx
 
 %% Parametry
 
-M = 3.3; %[kg] hmotnost kvadrokoptery
+M = 2; %[kg] hmotnost kvadrokoptery
 
 % momenty setrvacnosti, predpokladame symetrii kvadrokoptery
-Ixx = 1.1; %[kg*m2]
-Iyy = 2.989;
-Izz = 3.978;
+Ixx = 1.0247; %[kg*m2]
+Iyy = 1.0247;
+Izz = 0.0455;
 I = [Ixx, 0, 0;
      0, Iyy, 0;
      0, 0, Izz];
@@ -19,7 +20,8 @@ d = 1; %[m] delka lana
 Ip = m*d^2; %[kg*m2] setrvacnost zavazi (hm bod)
 
 g = 9.81;
-L = 0.086; %[m] polovicni delka kvadrokoptery (rameno od hmotneho bodu)
+L = 0.2051; %[m] polovicni delka kvadrokoptery (rameno od hmotneho bodu)
+% как блять до этого для большего квадрокоптера было 0.086 м я хз...
 
 k_thrust = 0.1; % koeficient umernosti pro generovani tahove sily
 k = 0.01; % soucinitel odporu vzduchu
