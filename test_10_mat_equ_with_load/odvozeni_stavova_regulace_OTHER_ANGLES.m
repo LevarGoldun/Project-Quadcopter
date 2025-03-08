@@ -50,8 +50,8 @@ Bc = [
         0,     0,     0,     0];
 
 % take parametry nutne rucne menit
-Ac = subs(Ac, [M Ixx Iyy Izz m d Ip g], [3.3 1.1 2.989 3.9 1 1 1*1^2 9.81]);
-Bc = subs(Bc, [M Ixx Iyy Izz m d Ip g], [3.3 1.1 2.989 3.9 1 1 1*1^2 9.81]);
+Ac = subs(Ac, [M Ixx Iyy Izz m d g], [2 1.0247 1.0247 0.0455 1 1 9.81]);
+Bc = subs(Bc, [M Ixx Iyy Izz m d g], [2 1.0247 1.0247 0.0455 1 1 9.81]);
 
 Ac = double(Ac); % a tohle uz muzeme analyzovat
 Bc = double(Bc);
@@ -103,13 +103,31 @@ X_ex = [q; q_dot; [Ix_ref;Iy_ref;Iz_ref;Iyaw_ref]];
 %          -3.1;-3.2;-3.3; -4.1;-4.2;-4.3; -0.66;-0.67;
 %          -1.7; -1.8; -1.9; -5]/10; % negunguji
 
-poles2 = [-4+3j;-4-3j; -3.5-3j;-3.5+3j; -3-2.5j;-3+2.5j;
-          -1.5-1j;-1.5+1j; -1-0.8j;-1+0.8j; -0.5-0.6j;-0.5+0.6j;
-          -3.5+2.5j;-3.5-2.5j; -3-2j;-3+2j;
-          -5; -4.5; -4.2; -3.8];
+% poles2 = [-4-3j;-4+3j; -3.5-3j;-3.5+3j; -3-2.5j;-3+2.5j;
+%           -1.5-1j;-1.5+1j; -1-0.8j;-1+0.8j; -0.5-0.6j;-0.5+0.6j;
+%           -3.5+2.5j;-3.5-2.5j; -3-2j;-3+2j;
+%           -5; -4.5; -3.8; -1];
 
+poles2 = [-4;-4.1;-4.2; 
+          -3.5+3j;-3.5-3j;-2;
+          -1.5-1j;-1.5+1j; 
 
+          -1-0.8j;-1+0.8j;-0.5-0.6j;
+          -0.5+0.6j;-1-0.6j;-2.5;
+          -3-2j;-3+2j;
+
+          -5; -4.5; -3.8; -1];
+
+% poly pro pozorovatele 2-6x rychlejsi
+poles_obs = poles2(1:16)*5;
+
+% Koeficietnty pro zpetnou vazbu
 K_ex_other_angles = place(Ac_ex, Bc_ex, poles2);
 ki_oa = K_ex_other_angles(:,17:20); % zesileni pro integracni cleny
 kp_oa = K_ex_other_angles(:, 1:16); % zesileni pro stavove cleny
+
+% Koeficienty pro pozorovatele - vyuzit princip duality
+% Take pozor je pouzita jina matice C!!! (vychozi)
+% protoze merime polohu, orientace a 2 uhly zavazi
+L_observer = place(Ac', Cc', poles_obs)';
 
