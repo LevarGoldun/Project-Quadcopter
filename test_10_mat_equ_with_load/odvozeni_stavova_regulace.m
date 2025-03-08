@@ -153,3 +153,9 @@ K_ex = place(Ac_ex, Bc_ex, poles2);
 ki = K_ex(:,17:20); % zesileni pro integracni cleny
 kp = K_ex(:, 1:16); % zesileni pro stavove cleny
 
+% !!! Dany model nefunguje...nevim, moc velke zesileni
+% V druhem modelu s jinym odectem uhlu pro zavazi regulace funguje,
+% koeficienty jsou adekvatni
+% |
+% V
+% takze asi budu pracovat s novym modelem
