@@ -20,12 +20,12 @@ d = 1; %[m] delka lana
 Ip = m*d^2; %[kg*m2] setrvacnost zavazi (hm bod)
 
 g = 9.81;
-L = 0.2051; %[m] polovicni delka kvadrokoptery (rameno od hmotneho bodu)
+l = 0.2051; %[m] polovicni delka kvadrokoptery (rameno od hmotneho bodu)
 % как блять до этого для большего квадрокоптера было 0.086 м я хз...
 
-k_thrust = 0.1; % koeficient umernosti pro generovani tahove sily
+k_thrust = 0.0023; % koeficient umernosti pro generovani tahove sily
 k = 0.01; % soucinitel odporu vzduchu
-b_moment = 0.01; % koeficient umernosti odporoveho momentu vrtule
+b_moment = 0.1; % koeficient umernosti odporoveho momentu vrtule
 
 %% Inicializace
 xyz_init = [0; 0; 0]; %pp poloha
@@ -42,3 +42,7 @@ Xinit_ss = [Xinit_matrix; [0 0 0 0 0 0 0 0]'];
 % singularni body pro linearni state-space se zavazim (pro vypocet delt)
 Xs_p = [0;0;0; 0;0;0; 0;0; 0;0;0; 0;0;0; 0;0];
 Us_p = [(M+m)*g; 0; 0; 0];
+% singularni bod pro vstupy ve tvaru otacek rotoru - jmenovite otacky pro
+% rovnovaznou polohu
+ms2 = (M+m)*g/(4*k_thrust); % je to hodnota otacky^2 !!!
+Ums_p = [ms2; ms2; ms2; ms2];
