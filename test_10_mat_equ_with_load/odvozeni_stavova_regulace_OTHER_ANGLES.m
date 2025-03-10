@@ -80,11 +80,11 @@ ev = eig(Ac);
 
 % Je system riditelny?
 R = ctrb(Ac, Bc);
-rank(R)
+% rank(R) --> 16, super
 
 % Je system pozorovatelny ?
 P = obsv(Ac, Cc_);
-rank(P)
+% rank(P) --> 16, super
 
 % Rozsireny stavovy popis -->
 % --> referencni x, y, z, yaw
@@ -113,7 +113,7 @@ poles2 = [-4;-4.1;-4.2;
           -1.5-1j;-1.5+1j; 
 
           -1-0.8j;-1+0.8j;-0.5-0.6j;
-          -0.5+0.6j;-1-0.6j;-2.5;
+          -0.5+0.6j;-0.4;-2.5;
           -3-2j;-3+2j;
 
           -5; -4.5; -3.8; -1];
@@ -123,7 +123,7 @@ poles_obs = poles2(1:16)*5;
 
 % Koeficietnty pro zpetnou vazbu
 K_ex_other_angles = place(Ac_ex, Bc_ex, poles2);
-ki_oa = K_ex_other_angles(:,17:20); % zesileni pro integracni cleny
+ki_oa = K_ex_other_angles(:, 17:20); % zesileni pro integracni cleny
 kp_oa = K_ex_other_angles(:, 1:16); % zesileni pro stavove cleny
 
 % Koeficienty pro pozorovatele - vyuzit princip duality
@@ -131,3 +131,27 @@ kp_oa = K_ex_other_angles(:, 1:16); % zesileni pro stavove cleny
 % protoze merime polohu, orientace a 2 uhly zavazi
 L_observer = place(Ac', Cc', poles_obs)';
 
+
+
+%% LQR
+% asi s nekonecnym horizontem, zatim nechapu rozdil
+% Q - pro stavy
+% R - pro vstupy
+% [x;y;z;roll;pitch;yaw;alpha;beta;+derivace;+x_ref;y_ref;z_ref;yaw_ref]
+
+% vahy pro stavy (8x)
+q_weight = [1 1 1 10 10 10 100 100];
+
+% vahy pro derivace stavu (8x)
+q_dot_weight = [1 1 1 1 1 1 100 100];
+
+% vahy pro integracni cleny (4x)
+ref_weight = [100 1 1 100];
+
+Q1 = diag([q_weight, q_dot_weight, ref_weight]);
+
+R1 = diag([0.01; 0.01; 0.01; 10]);
+
+[K_ex_lqr,~,Plqr] = lqr(Ac_ex, Bc_ex, Q1,R1);
+ki_lqr = K_ex_lqr(:, 17:20); % zesileni pro integracni cleny
+kp_lqr = K_ex_lqr(:, 1:16); % zesileni pro stavove cleny
