@@ -49,12 +49,37 @@ Bc = [
         0,     0,     0,     0;
         0,     0,     0,     0];
 
+% matice Bmc pro vstupy ve tvaru druhych mocnic otacek rotoru !!!
+% Ostatni postupy asi stejne, jenom je zmenena matice B
+% P.S. Matice Amc je stejna jako matice Ac
+syms k_thrust b_moment l
+Bmc = [
+                0,                 0,                 0,                0;
+                0,                 0,                 0,                0;
+                0,                 0,                 0,                0;
+                0,                 0,                 0,                0;
+                0,                 0,                 0,                0;
+                0,                 0,                 0,                0;
+                0,                 0,                 0,                0;
+                0,                 0,                 0,                0;
+                0,                 0,                 0,                0;
+                0,                 0,                 0,                0;
+ k_thrust/(M + m),  k_thrust/(M + m),  k_thrust/(M + m), k_thrust/(M + m);
+ (k_thrust*l)/Ixx, -(k_thrust*l)/Ixx, -(k_thrust*l)/Ixx, (k_thrust*l)/Ixx;
+-(k_thrust*l)/Iyy, -(k_thrust*l)/Iyy,  (k_thrust*l)/Iyy, (k_thrust*l)/Iyy;
+     b_moment/Izz,     -b_moment/Izz,      b_moment/Izz,    -b_moment/Izz;
+                0,                 0,                 0,                0;
+                0,                 0,                 0,                0];
+
 % take parametry nutne rucne menit
 Ac = subs(Ac, [M Ixx Iyy Izz m d g], [2 1.0247 1.0247 0.0455 1 1 9.81]);
 Bc = subs(Bc, [M Ixx Iyy Izz m d g], [2 1.0247 1.0247 0.0455 1 1 9.81]);
+Bmc = subs(Bmc, [M Ixx Iyy Izz m d g k_thrust b_moment l], [2 1.0247 1.0247 0.0455 1 1 9.81 0.0023 0.1 0.2051]);
 
 Ac = double(Ac); % a tohle uz muzeme analyzovat
 Bc = double(Bc);
+Bmc = double(Bmc);
+
 Cc = eye(8, 16); % na vystup pouze poloha, orientace a uhly zavazi
 % ale pro navrch stavove regulace potrebujeme upravenou matici C
 Cc_ = [
@@ -91,6 +116,7 @@ P = obsv(Ac, Cc_);
 % --> +4 integracnich clenu v rozsirenem popisu
 Ac_ex = [Ac, zeros(16, 4); Cc_, zeros(4, 4)];
 Bc_ex = [Bc; zeros(4, 4)];
+Bmc_ex = [Bmc; zeros(4, 4)];
 
 syms x(t) y(t) z(t) phi(t) theta(t) psi(t) alpha(t) beta(t)
 syms Ix_ref Iy_ref Iz_ref Iyaw_ref
@@ -141,17 +167,24 @@ L_observer = place(Ac', Cc', poles_obs)';
 
 % vahy pro stavy (8x)
 q_weight = [1 1 1 10 10 10 100 100];
-
 % vahy pro derivace stavu (8x)
 q_dot_weight = [1 1 1 1 1 1 100 100];
-
 % vahy pro integracni cleny (4x)
 ref_weight = [100 1 1 100];
 
 Q1 = diag([q_weight, q_dot_weight, ref_weight]);
 
+% vahy pro vstupy (sily/momenty)
 R1 = diag([0.01; 0.01; 0.01; 10]);
+
+% vahy pro vstupy (druhe mocniny otacek rotoru)
+Rmot1 = diag([1 1 1 1]/3000); % podle logiky vsechne motory maji stejnou vahu
 
 [K_ex_lqr,~,Plqr] = lqr(Ac_ex, Bc_ex, Q1,R1);
 ki_lqr = K_ex_lqr(:, 17:20); % zesileni pro integracni cleny
 kp_lqr = K_ex_lqr(:, 1:16); % zesileni pro stavove cleny
+
+[Kmot_ex_lqr,~,Pmotlqr] = lqr(Ac_ex, Bmc_ex, Q1, Rmot1);
+kimot_lqr = Kmot_ex_lqr(:, 17:20);
+kpmot_lqr = Kmot_ex_lqr(:, 1:16);
+
