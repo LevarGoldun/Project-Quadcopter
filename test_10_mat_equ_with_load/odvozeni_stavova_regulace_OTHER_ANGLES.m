@@ -72,9 +72,9 @@ Bmc = [
                 0,                 0,                 0,                0];
 
 % take parametry nutne rucne menit
-Ac = subs(Ac, [M Ixx Iyy Izz m d g], [2 1.0247 1.0247 0.0455 1 1 9.81]);
-Bc = subs(Bc, [M Ixx Iyy Izz m d g], [2 1.0247 1.0247 0.0455 1 1 9.81]);
-Bmc = subs(Bmc, [M Ixx Iyy Izz m d g k_thrust b_moment l], [2 1.0247 1.0247 0.0455 1 1 9.81 0.0023 0.1 0.2051]);
+Ac = subs(Ac, [M Ixx Iyy Izz m d g], [2 0.0222 0.0222 0.0429 1 1 9.81]);
+Bc = subs(Bc, [M Ixx Iyy Izz m d g], [2 0.0222 0.0222 0.0429 1 1 9.81]);
+Bmc = subs(Bmc, [M Ixx Iyy Izz m d g k_thrust b_moment l], [2 0.0222 0.0222 0.0429 1 1 9.81 2.3e-3 5.4e-6 0.2051]);
 
 Ac = double(Ac); % a tohle uz muzeme analyzovat
 Bc = double(Bc);
@@ -170,15 +170,15 @@ q_weight = [1 1 1 10 10 10 100 100];
 % vahy pro derivace stavu (8x)
 q_dot_weight = [1 1 1 1 1 1 100 100];
 % vahy pro integracni cleny (4x)
-ref_weight = [100 1 1 100];
+ref_weight = [1 1 1 100];
 
 Q1 = diag([q_weight, q_dot_weight, ref_weight]);
 
 % vahy pro vstupy (sily/momenty)
-R1 = diag([0.01; 0.01; 0.01; 10]);
+R1 = diag([1; 5; 5; 10]);
 
 % vahy pro vstupy (druhe mocniny otacek rotoru)
-Rmot1 = diag([1 1 1 1]/3000); % podle logiky vsechne motory maji stejnou vahu
+Rmot1 = diag([1 1 1 1]/5000); % podle logiky vsechne motory maji stejnou vahu
 
 [K_ex_lqr,~,Plqr] = lqr(Ac_ex, Bc_ex, Q1,R1);
 ki_lqr = K_ex_lqr(:, 17:20); % zesileni pro integracni cleny

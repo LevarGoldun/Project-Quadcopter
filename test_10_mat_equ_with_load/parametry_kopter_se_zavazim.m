@@ -1,5 +1,8 @@
 % 24.02.2025
 % 04.03.2025 - nove parametry pro v2
+% 14.03.2025 - byla udelana chyba pri urceni I kvadrokoptery. Mujoco pise
+% setrvacnost celeho systemu dron+zavazi. Samotny dron ma jine I, vic dole
+
 % Parametry pro odvozeni_nelin_rovnic_INERTIA_LOAD.mlx a
 % kopter_se_zavazim_simulace.slx
 
@@ -8,9 +11,10 @@
 M = 2; %[kg] hmotnost kvadrokoptery
 
 % momenty setrvacnosti, predpokladame symetrii kvadrokoptery
-Ixx = 1.0247; %[kg*m2]
-Iyy = 1.0247;
-Izz = 0.0455;
+Ixx = 0.0222; %[kg*m2]
+Iyy = 0.0222;
+Izz = 0.0429;
+% P.S. 1.0221 [kg*m2] pro mujoco model dron+zavazi a zavazi melo velky vliv
 I = [Ixx, 0, 0;
      0, Iyy, 0;
      0, 0, Izz];
@@ -23,9 +27,9 @@ g = 9.81;
 l = 0.2051; %[m] polovicni delka kvadrokoptery (rameno od hmotneho bodu)
 % как блять до этого для большего квадрокоптера было 0.086 м я хз...
 
-k_thrust = 0.0023; % koeficient umernosti pro generovani tahove sily
-k = 0.01; % soucinitel odporu vzduchu
-b_moment = 0.1; % koeficient umernosti odporoveho momentu vrtule
+k_thrust = 2.3e-3; % koeficient umernosti pro generovani tahove sily
+% k = 0.1; % soucinitel odporu vzduchu
+b_moment = 5.4e-6; % koeficient umernosti odporoveho momentu vrtule
 
 %% Inicializace
 xyz_init = [0; 0; 0]; %pp poloha
