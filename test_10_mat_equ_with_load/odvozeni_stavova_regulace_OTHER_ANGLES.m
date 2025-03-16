@@ -188,3 +188,18 @@ kp_lqr = K_ex_lqr(:, 1:16); % zesileni pro stavove cleny
 kimot_lqr = Kmot_ex_lqr(:, 17:20);
 kpmot_lqr = Kmot_ex_lqr(:, 1:16);
 
+% Navrch Kalmanova filtru pro LQR
+% inspirace dle https://youtu.be/ouRM4sgoVs8?list=PLn8PRpmsu08pzi6EMiYnR-076Mh-q3tWr&t=291
+% Do bloku Kalman Filter dosazujeme:
+% A: Ac
+% B: Bc resp. Bmc pokud model se vstupy ve tvaru otacky^2
+% C: Cc
+% D: Dc
+
+% Kovariance sumu procesu
+Q = 1e-3;
+% Kovariance sumu mereni
+R = 1e-4;
+% Sampling time
+Ts = 0.01; %[s]
+
