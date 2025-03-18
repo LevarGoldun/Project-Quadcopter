@@ -35,6 +35,9 @@ octave-workspace
 # игнорирование папки с уроками. они портят статистику
 MuJoCo YouTube tutorials
 
+# игнор 11 теста, это больше грачка
+test_11_mujoco_force_measure
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
