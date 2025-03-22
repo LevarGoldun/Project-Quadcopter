@@ -41,7 +41,7 @@ if get == 'Hello':
     client_socket.sendall(send.encode('utf-8'))  # Answer
 
 # MuJoCo settings
-xml_path = 'model_quadcopter_v2_debug.xml'
+xml_path = '../model_quadcopter_v2_debug.xml'
 model = mj.MjModel.from_xml_path(xml_path)  # MuJoCo model
 data = mj.MjData(model)  # MuJoCo data
 viewer = mujoco.viewer.launch_passive(model, data)
@@ -120,7 +120,7 @@ async def mujoco_simulation(viewer):
             # Pick up changes to the physics state, apply perturbations, update options from GUI.
             viewer.sync()
             # await asyncio.sleep(model.opt.timestep)
-            await asyncio.sleep(0.25)
+            # await asyncio.sleep(0.)
     except asyncio.CancelledError:
         pass
 
