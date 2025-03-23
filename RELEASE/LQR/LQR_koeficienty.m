@@ -14,12 +14,12 @@ q_weight = [1 1 100 1 1 10 100 100];
 % vahy pro derivace stavu (8x)
 q_dot_weight = [1 1 1 1 1 1 100 100];
 % vahy pro integracni cleny (4x)
-ref_weight = [1 1 1 100];
+ref_weight = [1 1 10 100];
 
 Q1 = diag([q_weight, q_dot_weight, ref_weight]);
 
 % vahy pro vstupy (sily/momenty)
-R1 = diag([0.1; 5; 5; 10]);
+R1 = diag([1; 5; 5; 10]);
 
 % vahy pro vstupy (otacky^2 rotoru kopteru)
 Rmot1 = diag([1 1 1 1]/5000); % podle logiky vsechne motory maji stejnou vahu
