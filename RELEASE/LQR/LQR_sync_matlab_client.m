@@ -2,12 +2,12 @@
 % MATLAB R2024b, PYTHON 3.12
 % Synchronni komunikace
 
-%===========!!! Kontrola verze Simulink !!!================================
+%===================!!! Kontrola verze Simulink !!!========================
 v = version;
 if contains(v, 'R2024a')
-    simulink_file_name = 'simulink_control_client_2024a'; %verze 2024a    
+    simulink_file_name = 'LQR_simulink_control_client_2024a'; %verze 2024a    
 elseif contains(v, 'R2024b')
-    simulink_file_name = 'simulink_control_client'; %verze 2024b (autor)
+    simulink_file_name = 'LQR_simulink_control_client'; %verze 2024b (autor)
 else
     disp('Save the file async_simulink_control_client.slx to your version')
 end
@@ -17,7 +17,6 @@ smfn = simulink_file_name;
 
 % Smazani info ze scopu - zpomaluji opakovanou simulaci
 % scopesClear(smfn)
-
 %==========================================================================
 
 % Vytvoreni TCP komunikace
@@ -43,28 +42,30 @@ while true
 end
 
 
-%-------------------------Nastaveni simulace-------------------------------
+%=============================NASTAVENI====================================
 % Cteme krok simulace a celkovy cas simulace z Python
 while true
     if tcpObj.NumBytesAvailable > 0
         get = read(tcpObj);
         timeData = jsondecode( native2unicode(get, 'UTF-8') );
-        simtime = timeData.SimTime;
-        timestep = timeData.TimeStep;
+        simtime = timeData.SimTime; % cas simulace
+        timestep = timeData.TimeStep; % krok (.xml)
         disp(['Cas simulace: ', num2str(simtime), ' s'])
         disp(['Krok simulace modelu: ', num2str(timestep), ' s'])
         break
     end
 end
 % Pausa programu
-pauseT = 0.01;
+pauseT = 0;
 
-% Nastaveni Kalmanova filtru
-load('LinSystemMatrix.mat')
+%---------------------Nastaveni Kalmanova filtru---------------------------
+load('../LinSystemMatrix.mat')
 Ac = LinSystem.Ac;
 Bc = LinSystem.Bc;
 Cc = LinSystem.Cc;
 Dc = LinSystem.Dc;
+% resp. pokud vstupy do KF otacky^2
+Bmc = LinSystem.Bmc;
 
 % Kovariance sumu procesu
 Q = 1e-3;
@@ -77,10 +78,33 @@ l = 0.2051; %[m] polovicni delka kvadrokoptery (rameno od hmotneho bodu)
 k_thrust = 2.3e-3; % koeficient umernosti pro generovani tahove sily
 b_moment = 5.4e-6; % koeficient umernosti odporoveho momentu vrtule
 
+% Pracovni bod pro linearni state-space (v Kalmanovem filtru)
+M = 2;
+m = 1;
+g = 9.81;
+Xs_p = [0;0;0; 0;0;0; 0;0; 0;0;0; 0;0;0; 0;0];
+Us_p = [(M+m)*g; 0; 0; 0];
+% pracovni bod pro vstupy ve tvaru otacek^2 rotoru - jmenovite otacky^2 
+% pro rovnovaznou polohu
+ms2 = (M+m)*g/(4*k_thrust); %[RPS^2]
+Ums_p = [ms2; ms2; ms2; ms2];
+%--------------------------------------------------------------------------
+
+
+%-------------------------Koeficienty LQR----------------------------------
+run("LQR_koeficienty.m")
+% pocatecni honoty integratoru pro integracni cleny v pp=[0;0;2]
+xss=[0;0;2;0;0;0;0;0;0;0;0;0;0;0;0;0];
+uss = Ums_p;
+
+init_int_ref = -kimot_lqr\(kpmot_lqr*xss+uss);
+set_param([smfn,'/Integrator_ref'],'InitialCondition', mat2str(init_int_ref));
+%--------------------------------------------------------------------------
+
 % Nastavujeme 'Fixed-step size' v Simulink a metodu reseni
 set_param(gcs,'SolverType','Fixed-step','FixedStep',num2str(timestep))
 % set_param(gcs,'Solver','ode4') % Runge-Kutta
-set_param(gcs,'Solver','ode1') % Euler
+% set_param(gcs,'Solver','ode1') % Euler
 
 % Nastavujeme 'Stop Time' v Simulink a pocatecni cas v bloku
 set_param(gcs,'StopTime', num2str(simtime))
@@ -89,21 +113,21 @@ set_param([smfn,'/time'],'Value', '0')
 % !!! TOHLE JE KLICOVA VEC PRO POUZITI SIMULINK !!!
 % start simulation and pause simulation, waiting for signal from python
 set_param(gcs,'SimulationCommand','start','SimulationCommand','pause');
-%--------------------------------------------------------------------------
-
+%==========================================================================
 
 
 %======================HLAVNI PROGRAM======================================
 i = 1;
 matrix_pendpos = [];
 matrix_time = [];
+time=0;
 try
-    while true
+    while true && time<simtime
         % tic
-        % Проверка состояния симулинк
+        % Kontrola stavu Simulink
         modelState = get_param(smfn, 'SimulationStatus');
         if strcmp(modelState, 'stopped') || strcmp(modelState, 'terminated')
-            disp('Модель Simulink остановлена или закрыта. Прерывание цикла.');
+            disp('Simulink model is stopped or closed. Cycle interrupted.');
             break;
         end
 
@@ -148,7 +172,7 @@ try
             end
         end
 
-        % pause(pauseT)
+        pause(pauseT)
         % toc
     end
 catch exception
@@ -156,16 +180,22 @@ catch exception
     % Uzavreni spojeni
     clear tcpObj;
 end
-
 disp("Konec zpracovani")
+%======================KONEC HLAVNIHO PROGRAMU=============================
 
+%%
+% Smazani a nastaveni vychozich hodnot v Simulink
 clear tcpObj
 set_param(gcs,'SimulationCommand','stop');
 set_param([smfn,'/time'],'Value', '0');
 set_param([smfn,'/DronRotM'],'Value', mat2str([1 0 0;0 1 0; 0 0 1]));
-set_param([smfn,'/PendPos'],'Value', mat2str([0;0;0]))
+set_param([smfn,'/DronPos'],'Value', mat2str([0;0;2]));
 
-% Функция для контроля правильности json строки
+set_param([smfn,'/PendPos'],'Value', mat2str([0;0;1]));
+set_param([smfn,'/PendRotM'],'Value', mat2str([1 0 0;0 1 0; 0 0 1]));
+
+
+% Funkce pro kontrolu spravnosti JSON retezce
 function isValid = isValidJSON(str)
     isValid = true;
     try
@@ -174,7 +204,6 @@ function isValid = isValidJSON(str)
         isValid = false;
     end
 end
-
 % Функция для закрытия о очистки scope
 function scopesClear(smfn)
     scopes = find_system(smfn, 'BlockType', 'Scope');

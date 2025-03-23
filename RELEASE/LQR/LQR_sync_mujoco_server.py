@@ -37,14 +37,14 @@ if get == 'Hello':
     client_socket.sendall(send.encode('utf-8'))  # Answer
 
 # MuJoCo settings
-xml_path = '../model_quadcopter_v2_debug.xml'
+xml_path = '../model_quadcopter_v2.xml'
 model = mj.MjModel.from_xml_path(xml_path)  # MuJoCo model
 data = mj.MjData(model)  # MuJoCo data
 viewer = mujoco.viewer.launch_passive(model, data)
 
 # ------------------------------------------Simulation setup------------------------------------------------------------
 # Sending to MATLAB simulation time step (from .xml file) and total simulation time
-simtime = 1000  # [s]
+simtime = 30  # [s]
 timestep = str(model.opt.timestep)  # [s]
 
 timeData = {"SimTime": simtime, "TimeStep": timestep}
