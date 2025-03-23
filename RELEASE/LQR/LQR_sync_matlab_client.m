@@ -11,6 +11,13 @@ elseif contains(v, 'R2024b')
 else
     disp('Save the file async_simulink_control_client.slx to your version')
 end
+% if contains(v, 'R2024a')
+%     simulink_file_name = 'LQR_simulink_control_client_2_2024a'; %verze 2024a    
+% elseif contains(v, 'R2024b')
+%     simulink_file_name = 'LQR_simulink_control_client_2'; %verze 2024b (autor)
+% else
+%     disp('Save the file async_simulink_control_client.slx to your version')
+% end
 clear v
 open_system([simulink_file_name, '.slx']);
 smfn = simulink_file_name;
@@ -95,10 +102,14 @@ Ums_p = [ms2; ms2; ms2; ms2];
 run("LQR_koeficienty.m")
 % pocatecni honoty integratoru pro integracni cleny v pp=[0;0;2]
 xss=[0;0;2;0;0;0;0;0;0;0;0;0;0;0;0;0];
-uss = Ums_p;
+uss = Us_p;
+ussm = Ums_p;
 
-init_int_ref = -kimot_lqr\(kpmot_lqr*xss+uss);
-set_param([smfn,'/Integrator_ref'],'InitialCondition', mat2str(init_int_ref));
+% init_int_ref = -ki_lqr\(kp_lqr*xss+uss); % pro vstup sily a momenty
+% set_param([smfn,'/Integrator_ref'],'InitialCondition', mat2str(init_int_ref));
+
+init_int_ref_m = -kimot_lqr\(kpmot_lqr*xss+ussm); % pro vstup otacky^2
+set_param([smfn,'/Integrator_ref_m'],'InitialCondition', mat2str(init_int_ref_m));
 %--------------------------------------------------------------------------
 
 % Nastavujeme 'Fixed-step size' v Simulink a metodu reseni
@@ -153,8 +164,8 @@ try
                     DronPos = data.DronPos;
                     PendPos = data.PendPos;
 
-                    DronRotM = reshape(data.DronRotM, 3, 3);
-                    PendRotM = reshape(data.PendRotM, 3, 3);
+                    DronRotM = transpose(reshape(data.DronRotM, 3, 3));
+                    PendRotM = transpose(reshape(data.PendRotM, 3, 3));
                     
                     % set parameter in the simulink model using the data from python
                     set_param([smfn,'/time'],'Value', num2str(time))

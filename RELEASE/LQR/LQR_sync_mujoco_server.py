@@ -44,7 +44,7 @@ viewer = mujoco.viewer.launch_passive(model, data)
 
 # ------------------------------------------Simulation setup------------------------------------------------------------
 # Sending to MATLAB simulation time step (from .xml file) and total simulation time
-simtime = 30  # [s]
+simtime = 50  # [s]
 timestep = str(model.opt.timestep)  # [s]
 
 timeData = {"SimTime": simtime, "TimeStep": timestep}
