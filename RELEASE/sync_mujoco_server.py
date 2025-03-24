@@ -37,7 +37,7 @@ if get == 'Hello':
     client_socket.sendall(send.encode('utf-8'))  # Answer
 
 # MuJoCo settings
-xml_path = '../model_quadcopter_v2.xml'
+xml_path = 'model_quadcopter_v2.xml'
 model = mj.MjModel.from_xml_path(xml_path)  # MuJoCo model
 data = mj.MjData(model)  # MuJoCo data
 viewer = mujoco.viewer.launch_passive(model, data)
