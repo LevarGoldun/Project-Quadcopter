@@ -147,15 +147,20 @@ poles2 = [-4;-4.1;-4.2;
 % poly pro pozorovatele 2-6x rychlejsi
 poles_obs = poles2(1:16)*5;
 
-% Koeficietnty pro zpetnou vazbu
+% Koeficietnty pro zpetnou vazbu (sily a momenty)
 K_ex_other_angles = place(Ac_ex, Bc_ex, poles2);
-ki_oa = K_ex_other_angles(:, 17:20); % zesileni pro integracni cleny
-kp_oa = K_ex_other_angles(:, 1:16); % zesileni pro stavove cleny
+ki = K_ex_other_angles(:, 17:20); % zesileni pro integracni cleny
+kp = K_ex_other_angles(:, 1:16); % zesileni pro stavove cleny
+
+% Koeficietnty pro zpetnou vazbu (otacky^2)
+Kmot_ex_other_angles = place(Ac_ex, Bmc_ex, poles2);
+kimot = Kmot_ex_other_angles(:, 17:20);
+kpmot = Kmot_ex_other_angles(:, 1:16);
 
 % Koeficienty pro pozorovatele - vyuzit princip duality
 % Take pozor je pouzita jina matice C!!! (vychozi)
 % protoze merime polohu, orientace a 2 uhly zavazi
-L_observer = place(Ac', Cc', poles_obs)';
+L_obs = place(Ac', Cc', poles_obs)';
 
 
 
@@ -166,7 +171,7 @@ L_observer = place(Ac', Cc', poles_obs)';
 % [x;y;z;roll;pitch;yaw;alpha;beta;+derivace;+x_ref;y_ref;z_ref;yaw_ref]
 
 % vahy pro stavy (8x)
-q_weight = [1 1 1 10 10 10 100 100];
+q_weight = [1 1 10 10 10 10 100 100];
 % vahy pro derivace stavu (8x)
 q_dot_weight = [1 1 1 1 1 1 100 100];
 % vahy pro integracni cleny (4x)
@@ -175,7 +180,7 @@ ref_weight = [1 1 1 100];
 Q1 = diag([q_weight, q_dot_weight, ref_weight]);
 
 % vahy pro vstupy (sily/momenty)
-R1 = diag([1; 5; 5; 10]);
+R1 = diag([0.1; 5; 5; 10]);
 
 % vahy pro vstupy (druhe mocniny otacek rotoru)
 Rmot1 = diag([1 1 1 1]/5000); % podle logiky vsechne motory maji stejnou vahu
@@ -201,5 +206,5 @@ Q = 1e-3;
 % Kovariance sumu mereni
 R = 1e-4;
 % Sampling time
-Ts = 0.01; %[s]
+Ts = 0.05; %[s]
 
