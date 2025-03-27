@@ -4,7 +4,7 @@
 <!-- Symetricky model, tvar X, bez odporu prostredi-->
 <mujoco model="Model quadcopter_v2">
 	<statistic meansize="0.15"/>
-	<option timestep ="0.05" density="0" viscosity="0"/> <!-- density="1.205" viscosity="1.8e-5" density[kg/m3] viscosity[kg/(ms)]-->
+	<option timestep ="0.05" density="0" viscosity="0" magnetic="27 0 0"/> <!-- density="1.205" viscosity="1.8e-5" density[kg/m3] viscosity[kg/(ms)]-->
 
 	<visual>
 		<headlight diffuse="0.7 0.7 0.7" ambient="0.7 0.7 0.7" specular="1.5 1.5 1.5"/>
@@ -39,8 +39,9 @@
 			<joint type="free"/>
 			<geom type="cylinder" name="zakladna" size="0.08 0.05" mass="0.8" rgba="0.2 0.2 0.2 1"/>
 			<geom type="box" name="pred" size="0.1 0.025 0.025" mass="0" pos="0.08 0 0" rgba="0.3373 0.0118 0.0980 1"/>
-			<site name="IMU+other" type="capsule" size="0.04" rgba="1 1 0 1"/> <!--location of all sensors-->
+
 			<!--IMU=Inertial measurement unit-->
+			<site name="IMU+other" euler="180 0 0" type="capsule" size="0.04" rgba="1 1 0 1"/> <!--location of all sensors-->
 
 			<body euler="-90 45 0"> <!-- rotor1 - rotor3-->
 				<geom type="cylinder" size="0.01 0.29" mass="0.55" rgba="0.41 0.41 0.41 1"/>
@@ -83,6 +84,7 @@
 		<accelerometer name="akcelerometr" site="IMU+other"/> <!--3 outputs-->
 		<velocimeter name="mereni rychlosti" site="IMU+other"/> <!--3 outputs-->
 		<gyro name="gyroskop" site="IMU+other"/> <!--3 outputs-->
+		<magnetometer name="magnetometr" site="IMU+other"/>
 <!--		<force name="senzor sily" site="IMU+other"/> &lt;!&ndash;3 outputs&ndash;&gt;-->
 <!--		<torque name="senzor momentu" site="IMU+other"/> &lt;!&ndash;3 outputs&ndash;&gt;-->
 

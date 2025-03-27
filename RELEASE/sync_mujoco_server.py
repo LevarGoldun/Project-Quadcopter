@@ -16,6 +16,21 @@ def print_cam_param(permit, camera):
         print('cam.azimuth =', camera.azimuth, 'cam.elevation =', camera.elevation, 'cam.distance =', camera.distance)
         print('cam.lookat = [', camera.lookat[0], ',', camera.lookat[1], ',', camera.lookat[2], ']')
         # output from function write in camera parameter settings
+
+
+def sensor_data_by_name(mj_model, mj_data, sensor_name):
+    """
+    Vlastni funkce pro nacteni dat ze senzoru  podle jeho nazvu v .XML
+    To je jednodusi (pri velkem poctu senzoru), nez primo pouzivat prikaz data.sensordata[i:j]
+    a vybirat spravne bunky
+    """
+    # Identifiktor senzoru podle jeho jmena
+    sensor_id = mj.mj_name2id(mj_model, mj.mjtObj.mjOBJ_SENSOR, sensor_name)
+    # Pocatecni index
+    sensor_adr = mj_model.sensor_adr[sensor_id]
+    # Delka dat ze senzoru
+    sensor_dim = mj_model.sensor_dim[sensor_id]
+    return mj_data.sensordata[sensor_adr:sensor_adr + sensor_dim].copy()
 # ========================================KONEC POMOCNE FUNKCE==========================================================
 
 
@@ -44,7 +59,7 @@ viewer = mujoco.viewer.launch_passive(model, data)
 
 # ------------------------------------------Simulation setup------------------------------------------------------------
 # Sending to MATLAB simulation time step (from .xml file) and total simulation time
-simtime = 50  # [s]
+simtime = 15  # [s]
 timestep = str(model.opt.timestep)  # [s]
 
 timeData = {"SimTime": simtime, "TimeStep": timestep}
@@ -92,6 +107,10 @@ try:
                 "PendPos": data.geom('point_mass').xpos.tolist(),
                 "DronRotM": data.body('quadcopter').xmat.tolist(),
                 "PendRotM": data.geom('point_mass').xmat.tolist(),
+
+                "imuAccel": sensor_data_by_name(model, data, 'akcelerometr').tolist(),
+                "imuGyro": sensor_data_by_name(model, data, 'gyroskop').tolist(),
+                "imuMag": sensor_data_by_name(model, data, 'magnetometr').tolist()
             }
             # Convert the dictionary to a JSON string
             json_data_to_send = json.dumps(data_to_send)

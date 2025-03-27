@@ -38,13 +38,14 @@
 		<body name="quadcopter" pos="0 0 2" euler="0 0 0">
 <!--			<joint type="free"/>-->
 			<joint type="slide" axis="1 0 0" range="-5 5"/>
-			<joint type="hinge" axis="0 1 0" range="-45 45"/>
+			<joint type="hinge" axis="0 1 0" range="-10 10"/>
 <!--			<joint type="slide" axis="0 0 1"/>-->
 
 			<geom type="cylinder" name="zakladna" size="0.08 0.05" mass="0.8" rgba="0.2 0.2 0.2 1"/>
 			<geom type="box" name="pred" size="0.1 0.025 0.025" mass="0" pos="0.08 0 0" rgba="0.3373 0.0118 0.0980 1"/>
-			<site name="IMU+other" type="capsule" size="0.04" rgba="1 1 0 1"/> <!--location of all sensors-->
+
 			<!--IMU=Inertial measurement unit-->
+			<site name="IMU+other" euler="180 0 0" type="capsule" size="0.04" rgba="1 1 0 1"/> <!--location of all sensors-->
 
 			<body euler="-90 45 0"> <!-- rotor1 - rotor3-->
 				<geom type="cylinder" size="0.01 0.29" mass="0.55" rgba="0.41 0.41 0.41 1"/>
@@ -69,13 +70,12 @@
 			<!--load-->
 			<body name="pendulum" pos="0 0 0" euler="0 0 0">
 				<joint type="ball" name="spojeni_lano"/>
-				<inertial mass="1" pos="0 0 0" diaginertia="0.001 0.001 0.001"/>
 				<geom type="cylinder" name="lano" pos="0 0 -0.5" size="0.008 0.5" mass="0" rgba="0.58 0.29 0 1" contype="0" conaffinity="0"/>
 
 				<!--outer shell-->
 				<geom name="load" type="sphere" size="0.08" pos="0 0 -1" mass="0" rgba="0 0.5 0.1 1" contype="0" conaffinity="0"/>
 				 <!--point mass-->
-				<geom name="point_mass" type="sphere" size="0.001" pos="0 0 -1" mass="0" rgba="0 0.5 0.1 1" contype="0" conaffinity="0"/>
+				<geom name="point_mass" type="sphere" size="0.001" pos="0 0 -1" mass="1" rgba="0 0.5 0.1 1" contype="0" conaffinity="0"/>
 
 				<geom name="ref" type="cylinder" size="0.02 0.1" pos="0.08 0 -1" euler="0 90 0" mass="0" contype="0" conaffinity="0"/>
 
