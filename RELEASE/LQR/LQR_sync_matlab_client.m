@@ -22,8 +22,6 @@ clear v
 open_system([simulink_file_name, '.slx']);
 smfn = simulink_file_name;
 
-% Smazani info ze scopu - zpomaluji opakovanou simulaci
-% scopesClear(smfn)
 %==========================================================================
 
 % Vytvoreni TCP komunikace
@@ -167,12 +165,24 @@ try
                     DronRotM = transpose(reshape(data.DronRotM, 3, 3));
                     PendRotM = transpose(reshape(data.PendRotM, 3, 3));
                     
+                    % Немного гемор с системами отсчета, но вкратце блок в
+                    % симулинк требует систему NED, в mujoco другое,
+                    % поэтому меняю знаки
+                    imuAccel = [data.imuAccel(1), -data.imuAccel(2), -data.imuAccel(3)];
+                    imuGyro = [data.imuGyro(1), -data.imuGyro(2), -data.imuGyro(3)];
+                    imuMag = [data.imuMag(1), -data.imuMag(2), -data.imuMag(3)];
+                    
                     % set parameter in the simulink model using the data from python
                     set_param([smfn,'/time'],'Value', num2str(time))
                     set_param([smfn,'/DronRotM'],'Value', mat2str(DronRotM))
                     set_param([smfn,'/PendRotM'],'Value', mat2str(PendRotM))
                     set_param([smfn,'/DronPos'],'Value', mat2str(DronPos))
                     set_param([smfn,'/PendPos'],'Value', mat2str(PendPos))
+
+                    % nastaveni dat pro sensor fusion
+                    set_param([smfn,'/imuAccel'],'Value', mat2str(imuAccel))
+                    set_param([smfn,'/imuGyro'],'Value', mat2str(imuGyro))
+                    set_param([smfn,'/imuMag'],'Value', mat2str(imuMag))
                     
                     % run the simulink model for one step
                     set_param(simulink_file_name, 'SimulationCommand','step');
@@ -205,6 +215,9 @@ set_param([smfn,'/DronPos'],'Value', mat2str([0;0;2]));
 set_param([smfn,'/PendPos'],'Value', mat2str([0;0;1]));
 set_param([smfn,'/PendRotM'],'Value', mat2str([1 0 0;0 1 0; 0 0 1]));
 
+set_param([smfn,'/imuAccel'],'Value', mat2str([0 0 9.81]))
+set_param([smfn,'/imuGyro'],'Value', mat2str([0 0 0]))
+set_param([smfn,'/imuMag'],'Value', mat2str([27 0 0]))
 
 % Funkce pro kontrolu spravnosti JSON retezce
 function isValid = isValidJSON(str)
@@ -213,14 +226,5 @@ function isValid = isValidJSON(str)
         jsondecode(str);
     catch
         isValid = false;
-    end
-end
-% Функция для закрытия о очистки scope
-function scopesClear(smfn)
-    scopes = find_system(smfn, 'BlockType', 'Scope');
-    for i = 1:length(scopes)
-        % Закрытие окна Scope
-        set_param(scopes{i}, 'Open', 'off');
-        % Очистка данных в Scope
     end
 end
