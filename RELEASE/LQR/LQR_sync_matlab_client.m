@@ -4,20 +4,20 @@
 
 %===================!!! Kontrola verze Simulink !!!========================
 v = version;
-if contains(v, 'R2024a')
-    simulink_file_name = 'LQR_simulink_control_client_2024a'; %verze 2024a    
-elseif contains(v, 'R2024b')
-    simulink_file_name = 'LQR_simulink_control_client'; %verze 2024b (autor)
-else
-    disp('Save the file async_simulink_control_client.slx to your version')
-end
 % if contains(v, 'R2024a')
-%     simulink_file_name = 'LQR_simulink_control_client_2_2024a'; %verze 2024a    
+%     simulink_file_name = 'LQR_simulink_control_client_2024a'; %verze 2024a    
 % elseif contains(v, 'R2024b')
-%     simulink_file_name = 'LQR_simulink_control_client_2'; %verze 2024b (autor)
+%     simulink_file_name = 'LQR_simulink_control_client'; %verze 2024b (autor)
 % else
 %     disp('Save the file async_simulink_control_client.slx to your version')
 % end
+if contains(v, 'R2024a')
+    simulink_file_name = 'LQR_simulink_control_client_2_2024a'; %verze 2024a    
+elseif contains(v, 'R2024b')
+    simulink_file_name = 'LQR_simulink_control_client_2'; %verze 2024b (autor)
+else
+    disp('Save the file async_simulink_control_client.slx to your version')
+end
 clear v
 open_system([simulink_file_name, '.slx']);
 smfn = simulink_file_name;
@@ -103,11 +103,11 @@ xss=[0;0;2;0;0;0;0;0;0;0;0;0;0;0;0;0];
 uss = Us_p;
 ussm = Ums_p;
 
-% init_int_ref = -ki_lqr\(kp_lqr*xss+uss); % pro vstup sily a momenty
-% set_param([smfn,'/Integrator_ref'],'InitialCondition', mat2str(init_int_ref));
+init_int_ref = -ki_lqr\(kp_lqr*xss+uss); % pro vstup sily a momenty
+set_param([smfn,'/Integrator_ref'],'InitialCondition', mat2str(init_int_ref));
 
-init_int_ref_m = -kimot_lqr\(kpmot_lqr*xss+ussm); % pro vstup otacky^2
-set_param([smfn,'/Integrator_ref_m'],'InitialCondition', mat2str(init_int_ref_m));
+% init_int_ref_m = -kimot_lqr\(kpmot_lqr*xss+ussm); % pro vstup otacky^2
+% set_param([smfn,'/Integrator_ref_m'],'InitialCondition', mat2str(init_int_ref_m));
 %--------------------------------------------------------------------------
 
 % Nastavujeme 'Fixed-step size' v Simulink a metodu reseni
@@ -180,9 +180,9 @@ try
                     set_param([smfn,'/PendPos'],'Value', mat2str(PendPos))
 
                     % nastaveni dat pro sensor fusion
-                    set_param([smfn,'/imuAccel'],'Value', mat2str(imuAccel))
-                    set_param([smfn,'/imuGyro'],'Value', mat2str(imuGyro))
-                    set_param([smfn,'/imuMag'],'Value', mat2str(imuMag))
+                    % set_param([smfn,'/imuAccel'],'Value', mat2str(imuAccel))
+                    % set_param([smfn,'/imuGyro'],'Value', mat2str(imuGyro))
+                    % set_param([smfn,'/imuMag'],'Value', mat2str(imuMag))
                     
                     % run the simulink model for one step
                     set_param(simulink_file_name, 'SimulationCommand','step');
@@ -215,9 +215,9 @@ set_param([smfn,'/DronPos'],'Value', mat2str([0;0;2]));
 set_param([smfn,'/PendPos'],'Value', mat2str([0;0;1]));
 set_param([smfn,'/PendRotM'],'Value', mat2str([1 0 0;0 1 0; 0 0 1]));
 
-set_param([smfn,'/imuAccel'],'Value', mat2str([0 0 9.81]))
-set_param([smfn,'/imuGyro'],'Value', mat2str([0 0 0]))
-set_param([smfn,'/imuMag'],'Value', mat2str([27 0 0]))
+% set_param([smfn,'/imuAccel'],'Value', mat2str([0 0 9.81]))
+% set_param([smfn,'/imuGyro'],'Value', mat2str([0 0 0]))
+% set_param([smfn,'/imuMag'],'Value', mat2str([27 0 0]))
 
 % Funkce pro kontrolu spravnosti JSON retezce
 function isValid = isValidJSON(str)
