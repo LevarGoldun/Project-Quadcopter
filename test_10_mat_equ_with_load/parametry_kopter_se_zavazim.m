@@ -34,7 +34,7 @@ b_moment = 5.4e-6; % koeficient umernosti odporoveho momentu vrtule
 %% Inicializace
 xyz_init = [0; 0; 0]; %pp poloha
 uhly_init = [0; 0; 0]; %pp orientace
-zavazi_init = [0; 0]; %pp alpha a beta zavazi
+zavazi_init = [10*pi/180*0; 0]; %pp alpha a beta zavazi
 
 xyz_dot_init = [0;0;0];
 uhly_dot_init = [0;0;0];
