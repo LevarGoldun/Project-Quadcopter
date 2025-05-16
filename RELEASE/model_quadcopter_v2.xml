@@ -4,7 +4,7 @@
 <!-- Symetricky model, tvar X, bez odporu prostredi-->
 <mujoco model="Model quadcopter_v2">
 	<statistic meansize="0.15"/>
-	<option timestep ="0.05" density="0" viscosity="0" magnetic="27 0 0"/> <!-- density="1.205" viscosity="1.8e-5" density[kg/m3] viscosity[kg/(ms)]-->
+	<option  integrator="RK4" timestep ="0.05" density="0" viscosity="0" magnetic="27 0 0"/> <!-- density="1.205" viscosity="1.8e-5" density[kg/m3] viscosity[kg/(ms)]-->
 
 	<visual>
 		<headlight diffuse="0.7 0.7 0.7" ambient="0.7 0.7 0.7" specular="1.5 1.5 1.5"/>
@@ -95,10 +95,14 @@
 	</sensor>
 
 	<actuator>
-		<motor name="motor1" site="thrust1" gear="0 0 0.0023 0 0 0.0000054" ctrlrange="0 4300"/> <!--CCW-->
-		<motor name="motor2" site="thrust2" gear="0 0 0.0023 0 0 -0.0000054" ctrlrange="0 4300"/> <!--CW-->
-		<motor name="motor3" site="thrust3" gear="0 0 0.0023 0 0 0.0000054" ctrlrange="0 4300"/> <!--CCW-->
-		<motor name="motor4" site="thrust4" gear="0 0 0.0023 0 0 -0.0000054" ctrlrange="0 4300"/> <!--CW-->
+<!--		<motor name="motor1" site="thrust1" gear="0 0 0.0023 0 0 0.0000054" ctrlrange="0 4300"/> &lt;!&ndash;CCW&ndash;&gt;-->
+<!--		<motor name="motor2" site="thrust2" gear="0 0 0.0023 0 0 -0.0000054" ctrlrange="0 4300"/> &lt;!&ndash;CW&ndash;&gt;-->
+<!--		<motor name="motor3" site="thrust3" gear="0 0 0.0023 0 0 0.0000054" ctrlrange="0 4300"/> &lt;!&ndash;CCW&ndash;&gt;-->
+<!--		<motor name="motor4" site="thrust4" gear="0 0 0.0023 0 0 -0.0000054" ctrlrange="0 4300"/> &lt;!&ndash;CW&ndash;&gt;-->
+		<motor name="motor1" site="thrust1" gear="0 0 0.0023 0 0 0.0000054" /> <!--CCW-->
+		<motor name="motor2" site="thrust2" gear="0 0 0.0023 0 0 -0.0000054" /> <!--CW-->
+		<motor name="motor3" site="thrust3" gear="0 0 0.0023 0 0 0.0000054" /> <!--CCW-->
+		<motor name="motor4" site="thrust4" gear="0 0 0.0023 0 0 -0.0000054" /> <!--CW-->
 	</actuator>
 
 </mujoco>
