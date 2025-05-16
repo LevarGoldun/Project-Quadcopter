@@ -9,6 +9,7 @@ import mujoco as mj
 import mujoco.viewer
 import socket  # TCP communication
 import json  # To convert Python dictionary into a friendly format
+import numpy as np
 
 # ===========================================POMOCNE FUNKCE=============================================================
 def print_cam_param(permit, camera):
@@ -59,7 +60,7 @@ viewer = mujoco.viewer.launch_passive(model, data)
 
 # ------------------------------------------Simulation setup------------------------------------------------------------
 # Sending to MATLAB simulation time step (from .xml file) and total simulation time
-simtime = 60  # [s]
+simtime = 15  # [s]
 timestep = str(model.opt.timestep)  # [s]
 
 timeData = {"SimTime": simtime, "TimeStep": timestep}
@@ -77,47 +78,55 @@ cam.azimuth = -107.42
 cam.elevation = -47.15
 cam.distance = 5.16
 cam.lookat = [-0.0049, 0.4150, 2.1315]
+# -----------------------------------------Other------------------------------------------------------------------------
+# nv = len(data.qvel)
+# M = np.zeros((nv, nv))
+# mj.mj_fullM(model, M, data.qM)  # matice hmotnosti a setrvacnosti
+# print("Matice hmotnosti a setrvacnosti:")
+# print(M)
 
 # ======================================================================================================================
 
 
 # ==========================================MAIN PROGRAM================================================================
 # Initialization
-data.ctrl[0:3 + 1] = (3 * 9.81) / 4 / 0.0023  # sila pro udrzeni kvadrokoptery, 4*k*F=Mg (p.s. celkova hmotnost 3 kg)
+data.ctrl[0:3 + 1] = (3 * 9.81) / 4 / 0.0023  # sila pro udrzeni kvadrokoptery, 4*k*n^2=Mg (p.s. celkova hmotnost 3 kg)
 
 try:
-    while viewer.is_running() and data.time < simtime:
+    while viewer.is_running() and data.time < simtime+model.opt.timestep:
         print_cam_param(cam_data_permit, viewer.cam)
 
+        # Send data to MATLAB
+        data_to_send = {
+            "SimulationTime": data.time,
+            "DronPos": data.body('quadcopter').xpos.tolist(),
+            "PendPos": data.geom('point_mass').xpos.tolist(),
+            "DronRotM": data.body('quadcopter').xmat.tolist(),
+            "PendRotM": data.geom('point_mass').xmat.tolist(),
+
+            "imuAccel": sensor_data_by_name(model, data, 'akcelerometr').tolist(),
+            "imuGyro": sensor_data_by_name(model, data, 'gyroskop').tolist(),
+            "imuMag": sensor_data_by_name(model, data, 'magnetometr').tolist()
+        }
+        # Convert the dictionary to a JSON string
+        json_data_to_send = json.dumps(data_to_send)
+        # Send
+        client_socket.sendall(json_data_to_send.encode('utf-8'))
+
         # Receive data from MATLAB
+        print("Wait get")
         get = client_socket.recv(1024)
         if get:
             json_str = json.loads(get.decode('utf-8'))
             m_square = json_str['Rotor_RPS_square']
             data.ctrl = [m_square[0], m_square[1], m_square[2], m_square[3]]
 
-            # Step the simulation
+            # STEP the simulation
             with viewer.lock():
                 mj.mj_step(model, data)
-
-            # Send data to MATLAB
-            data_to_send = {
-                "SimulationTime": data.time,
-                "DronPos": data.body('quadcopter').xpos.tolist(),
-                "PendPos": data.geom('point_mass').xpos.tolist(),
-                "DronRotM": data.body('quadcopter').xmat.tolist(),
-                "PendRotM": data.geom('point_mass').xmat.tolist(),
-
-                "imuAccel": sensor_data_by_name(model, data, 'akcelerometr').tolist(),
-                "imuGyro": sensor_data_by_name(model, data, 'gyroskop').tolist(),
-                "imuMag": sensor_data_by_name(model, data, 'magnetometr').tolist()
-            }
-            # Convert the dictionary to a JSON string
-            json_data_to_send = json.dumps(data_to_send)
-            client_socket.sendall(json_data_to_send.encode('utf-8'))
-
             # Pick up changes to the physics state, apply perturbations, update options from GUI.
             viewer.sync()
+            # time.sleep(0.5)
 except Exception as e:
     print(f"Error: {e}")
 
@@ -125,4 +134,3 @@ client_socket.close()
 server_socket.close()
 print("End")
 # ========================================END PROGRAM===================================================================
-
