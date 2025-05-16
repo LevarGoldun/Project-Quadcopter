@@ -59,7 +59,7 @@ end
 % Pausa programu
 pauseT = 0;
 
-%---------------------Nastaveni Kalmanova filtru---------------------------
+%--------------Nastaveni Luenbergerova pozorovatele------------------------
 load('../LinSystemMatrix.mat')
 Ac = LinSystem.Ac;
 Bc = LinSystem.Bc; % matice pro vstypy tahova sila/momenty
@@ -71,7 +71,7 @@ l = 0.2051; %[m] polovicni delka kvadrokoptery (rameno od hmotneho bodu)
 k_thrust = 2.3e-3; % koeficient umernosti pro generovani tahove sily
 b_moment = 5.4e-6; % koeficient umernosti odporoveho momentu vrtule
 
-% Pracovni bod pro linearni state-space (v Kalmanovem filtru)
+% Pracovni bod pro linearni state-space (v pozorovateli)
 M = 2;
 m = 1;
 g = 9.81;
