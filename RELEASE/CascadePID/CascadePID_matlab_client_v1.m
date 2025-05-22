@@ -81,6 +81,7 @@ set_param([smfn,'/time'],'Value', '0')
 % !!! TOHLE JE KLICOVA VEC PRO POUZITI SIMULINK !!!
 % start simulation and pause simulation, waiting for signal from python
 % set_param(gcs,'SimulationCommand','start','SimulationCommand','pause');
+% ---> premistena dovnitrz cyklu while()
 pause(0.5)
 %==========================================================================
 
@@ -158,17 +159,9 @@ disp("Konec zpracovani")
 %======================KONEC HLAVNIHO PROGRAMU=============================
 
 %%
-% Smazani a nastaveni vychozich hodnot v Simulink
-% (museji se shodovat s poc podminky z mujoco)
+% Smazani komunikace a zastaveni Simulink
 clear tcpObj
 set_param(gcs,'SimulationCommand','stop');
-% set_param([smfn,'/time'],'Value', '0');
-% set_param([smfn,'/DronRotM'],'Value', mat2str([1 0 0;0 1 0; 0 0 1]));
-% set_param([smfn,'/DronPos'],'Value', mat2str([0;0;2]));
-% 
-% set_param([smfn,'/PendPos'],'Value', mat2str([0;0;1]));
-% set_param([smfn,'/PendRotM'],'Value', mat2str([1 0 0;0 1 0; 0 0 1]));
-
 
 % Funkce pro kontrolu spravnosti JSON retezce
 function isValid = isValidJSON(str)
