@@ -43,6 +43,7 @@ test_9_3D_control/Novy model kvadrokoptery (remaster)
 
 # игнор папки в тесте 10
 test_10_mat_equ_with_load/testy a drobne poznamky
+test_10_mat_equ_with_load/obrazky plot
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
