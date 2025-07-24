@@ -98,10 +98,10 @@
 	</sensor>
 
 	<actuator>
-		<motor name="motor1" site="thrust1" gear="0 0 0.0023 0 0 0.0000054" ctrlrange="0 4300"/> <!--CCW-->
-		<motor name="motor2" site="thrust2" gear="0 0 0.0023 0 0 -0.0000054" ctrlrange="0 4300"/> <!--CW-->
-		<motor name="motor3" site="thrust3" gear="0 0 0.0023 0 0 0.0000054" ctrlrange="0 4300"/> <!--CCW-->
-		<motor name="motor4" site="thrust4" gear="0 0 0.0023 0 0 -0.0000054" ctrlrange="0 4300"/> <!--CW-->
+		<motor name="motor1" site="thrust1" gear="0 0 0.0000093 0 0 0.00000036" /> <!--CCW-->
+		<motor name="motor2" site="thrust2" gear="0 0 0.0000093 0 0 -0.00000036" /> <!--CW-->
+		<motor name="motor3" site="thrust3" gear="0 0 0.0000093 0 0 0.00000036" /> <!--CCW-->
+		<motor name="motor4" site="thrust4" gear="0 0 0.0000093 0 0 -0.00000036" /> <!--CW-->
 	</actuator>
 
 </mujoco>

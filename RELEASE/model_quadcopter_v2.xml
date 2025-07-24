@@ -1,10 +1,11 @@
-<!-- By Valerii Lisnychuk, goldunlevar@gmail.com-->
-<!-- Diplomova prace, leto 2025, CVUT FS-->
+<!--By Valerii Lisnychuk, Valerii.Lisnychuk@fs.cvut.cz-->
+<!--Diploma thesis, summer 2025, CTU FME-->
 
-<!-- Symetricky model, tvar X, bez odporu prostredi-->
+<!--Symmetrical model, X shape, no environmental resistance-->
 <mujoco model="Model quadcopter_v2">
 	<statistic meansize="0.15"/>
-	<option  integrator="RK4" timestep ="0.05" density="0" viscosity="0" magnetic="27 0 0"/> <!-- density="1.205" viscosity="1.8e-5" density[kg/m3] viscosity[kg/(ms)]-->
+	<!-- density="1.205" viscosity="1.8e-5" density[kg/m3] viscosity[kg/(ms)]-->
+	<option  integrator="RK4" timestep ="0.025" density="0" viscosity="0" magnetic="27 0 0"/>
 
 	<visual>
 		<headlight diffuse="0.7 0.7 0.7" ambient="0.7 0.7 0.7" specular="1.5 1.5 1.5"/>
@@ -14,95 +15,110 @@
   	</visual>
 
 	<asset>
-		<!--scene-->
-		<texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="512"/><!--sky-->
-
-		<texture type="2d" name="podlaha_textura" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8" width="255" height="255"/>
-		<material name="floor" texture="podlaha_textura" texuniform="true" texrepeat="3 3" reflectance="0"/><!--floor-->
+		<!--Scene-->
+		<!--sky-->
+		<texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="512"/>
+		<!--floor-->
+		<texture type="2d" name="podlaha_textura" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3"
+				 markrgb="0.8 0.8 0.8" width="255" height="255"/>
+		<material name="floor" texture="podlaha_textura" texuniform="true" texrepeat="3 3" reflectance="0"/>
 
 		<!--Dark carbon coating-->
-        <texture type="2d" name="carbon_texture_dark" builtin="checker" mark="cross" rgb1="0.03 0.03 0.03" rgb2="0.12 0.12 0.12" markrgb="0.18 0.18 0.18" width="1024" height="1024"/>
-		<material name="carbon_dark" texture="carbon_texture_dark" texuniform="true" texrepeat="50 50" reflectance="0.3" shininess="0.8" specular="0.5"/>
+        <texture type="2d" name="carbon_texture_dark" builtin="checker" mark="cross"
+				 rgb1="0.03 0.03 0.03" rgb2="0.12 0.12 0.12" markrgb="0.18 0.18 0.18" width="1024" height="1024"/>
+		<material name="carbon_dark" texture="carbon_texture_dark" texuniform="true" texrepeat="50 50"
+				  reflectance="0.3" shininess="0.8" specular="0.5"/>
 
         <!--Light carbon coating-->
-		<texture type="2d" name="carbon_texture_light" builtin="checker" mark="cross" rgb1="0.08 0.08 0.08" rgb2="0.18 0.18 0.18" markrgb="0.25 0.25 0.25" width="1024" height="1024"/>
-        <material name="carbon_light" texture="carbon_texture_light" texuniform="true" texrepeat="50 50" reflectance="0.35" shininess="0.85" specular="0.6"/>
+		<texture type="2d" name="carbon_texture_light" builtin="checker" mark="cross"
+				 rgb1="0.08 0.08 0.08" rgb2="0.18 0.18 0.18" markrgb="0.25 0.25 0.25" width="1024" height="1024"/>
+        <material name="carbon_light" texture="carbon_texture_light" texuniform="true" texrepeat="50 50"
+				  reflectance="0.35" shininess="0.85" specular="0.6"/>
 	</asset>
 
 	<worldbody><!--SI units-->
-		<!--svetlo a podlaha-->
+		<!--light and floor-->
         <light diffuse="0.7 0.7 0.7" pos="0 0 30" dir="0 0 -1" directional="false"/>
 		<geom name="floor" type="plane" size="0 0 0.1" material="floor"/>
 
-		<!--kvadrokoptera-->
+		<!--Quadcopter-->
 		<body name="quadcopter" pos="0 0 2">
 			<joint type="free"/>
 			<geom type="cylinder" name="zakladna" size="0.08 0.05" mass="0.8" rgba="0.2 0.2 0.2 1"/>
 			<geom type="box" name="pred" size="0.1 0.025 0.025" mass="0" pos="0.08 0 0" rgba="0.3373 0.0118 0.0980 1"/>
 
 			<!--IMU=Inertial measurement unit-->
-			<site name="IMU+other" euler="180 0 0" type="capsule" size="0.04" rgba="1 1 0 1"/> <!--location of all sensors-->
+			<!--location of all sensors-->
+			<site name="IMU+other" euler="180 0 0" type="capsule" size="0.04" rgba="1 1 0 1"/>
 
-			<body euler="-90 45 0"> <!-- rotor1 - rotor3-->
+			<body euler="-90 45 0"> <!-- rotor1 - rotor3 Arm-->
 				<geom type="cylinder" size="0.01 0.29" mass="0.55" rgba="0.41 0.41 0.41 1"/>
 
-				<geom type="cylinder" name="rotor1" pos="0 0 0.29" euler="90 0 0" size="0.15 0.01" mass="0.025" material="carbon_light"/>
+				<geom type="cylinder" name="rotor1" pos="0 0 0.29" euler="90 0 0" size="0.15 0.01"
+					  mass="0.025" material="carbon_light"/>
+				<!--rotor1 position -->
 				<site name="thrust1" pos="0 0 0.29" euler="90 0 0" size="0.02" rgba="0.45 0.45 0.45 1"/>
 
-				<geom type="cylinder" name="rotor3" pos="0 0 -0.29" euler="90 0 0" size="0.15 0.01" mass="0.025" material="carbon_dark"/>
+				<geom type="cylinder" name="rotor3" pos="0 0 -0.29" euler="90 0 0" size="0.15 0.01"
+					  mass="0.025" material="carbon_dark"/>
+				<!--rotor3 position -->
 				<site name="thrust3" pos="0 0 -0.29" euler="90 0 0" size="0.02" rgba="0.45 0.45 0.45 1"/>
 			</body>
 
-			<body euler="-90 -45 0"> <!-- rotor2 - rotor4-->
+			<body euler="-90 -45 0"> <!--rotor2 - rotor4 Arm-->
 				<geom type="cylinder" size="0.01 0.29" mass="0.55" rgba="0.41 0.41 0.41 1"/>
 
-				<geom type="cylinder" name="rotor2" pos="0 0 -0.29" euler="90 0 0" size="0.15 0.01" mass="0.025" material="carbon_light"/>
+				<geom type="cylinder" name="rotor2" pos="0 0 -0.29" euler="90 0 0" size="0.15 0.01"
+					  mass="0.025" material="carbon_light"/>
+				<!--rotor 2 position-->
 				<site name="thrust2" pos="0 0 -0.29" euler="90 0 0" size="0.02" rgba="0.45 0.45 0.45 1"/>
 
-				<geom type="cylinder" name="rotor4" pos="0 0 0.29" euler="90 0 0" size="0.15 0.01" mass="0.025" material="carbon_dark"/>
+				<geom type="cylinder" name="rotor4" pos="0 0 0.29" euler="90 0 0" size="0.15 0.01"
+					  mass="0.025" material="carbon_dark"/>
+				<!--rotor 4 position-->
 				<site name="thrust4" pos="0 0 0.29" euler="90 0 0" size="0.02" rgba="0.45 0.45 0.45 1"/>
 			</body>
 
-			<!--load-->
+			<!--Suspended Load-->
 			<body name="pendulum" pos="0 0 0" euler="0 0 0">
 				<joint type="ball" name="spojeni_lano"/>
-				<geom type="cylinder" name="lano" pos="0 0 -0.5" size="0.008 0.5" mass="0" rgba="0.58 0.29 0 1" contype="0" conaffinity="0"/>
+				<geom type="cylinder" name="lano" pos="0 0 -0.5" size="0.008 0.5"
+					  mass="0" rgba="0.58 0.29 0 1" contype="0" conaffinity="0"/>
 
-				<!--outer shell-->
-				<geom name="load" type="sphere" size="0.08" pos="0 0 -1" mass="0" rgba="0 0.5 0.1 1" contype="0" conaffinity="0"/>
-				<!--point mass-->
-				<geom name="point_mass" type="sphere" size="0.001" pos="0 0 -1" mass="1" rgba="0 0.5 0.1 1" contype="0" conaffinity="0"/>
-
-				<geom name="ref" type="cylinder" size="0.02 0.1" pos="0.08 0 -1" euler="0 90 0" mass="0" contype="0" conaffinity="0"/>
+				<!--Fictitious visual shell-->
+				<geom name="load" type="sphere" size="0.08" pos="0 0 -1"
+					  mass="0" rgba="0 0.5 0.1 1" contype="0" conaffinity="0"/>
+				<!--True point mass-->
+				<geom name="point_mass" type="sphere" size="0.001" pos="0 0 -1"
+					  mass="1" rgba="0 0.5 0.1 1" contype="0" conaffinity="0"/>
+				<!--Visual identification of the front part of the load-->
+				<geom name="ref" type="cylinder" size="0.02 0.1" pos="0.08 0 -1" euler="0 90 0"
+					  mass="0" contype="0" conaffinity="0"/>
 
 			</body>
 		</body>
 	</worldbody>
 
+	<!--Sensor definition-->
 	<sensor>
-		<!--lze cist v kodu z mjData.sensordata-->
+		<!--Read data from mjData.sensordata -> custom function sensor_data_by_name()-->
 		<accelerometer name="akcelerometr" site="IMU+other"/> <!--3 outputs-->
 		<velocimeter name="mereni rychlosti" site="IMU+other"/> <!--3 outputs-->
 		<gyro name="gyroskop" site="IMU+other"/> <!--3 outputs-->
 		<magnetometer name="magnetometr" site="IMU+other"/>
 <!--		<force name="senzor sily" site="IMU+other"/> &lt;!&ndash;3 outputs&ndash;&gt;-->
 <!--		<torque name="senzor momentu" site="IMU+other"/> &lt;!&ndash;3 outputs&ndash;&gt;-->
-
-		<!--testove senzory na aktuatoru-->
-<!--		<actuatorpos name="senzor delky aktuatoru" actuator="motor1"/>-->
-<!--		<actuatorvel name="senzor rychlosti aktuatoru" actuator="motor1"/> &lt;!&ndash;neni to, co jsem si myslel&ndash;&gt;-->
-<!--		<actuatorfrc name="senzor sily aktuatoru" actuator="motor1"/>-->
 	</sensor>
 
+	<!--Configuration motors on rotors-->
 	<actuator>
-<!--		<motor name="motor1" site="thrust1" gear="0 0 0.0023 0 0 0.0000054" ctrlrange="0 4300"/> &lt;!&ndash;CCW&ndash;&gt;-->
-<!--		<motor name="motor2" site="thrust2" gear="0 0 0.0023 0 0 -0.0000054" ctrlrange="0 4300"/> &lt;!&ndash;CW&ndash;&gt;-->
-<!--		<motor name="motor3" site="thrust3" gear="0 0 0.0023 0 0 0.0000054" ctrlrange="0 4300"/> &lt;!&ndash;CCW&ndash;&gt;-->
-<!--		<motor name="motor4" site="thrust4" gear="0 0 0.0023 0 0 -0.0000054" ctrlrange="0 4300"/> &lt;!&ndash;CW&ndash;&gt;-->
-		<motor name="motor1" site="thrust1" gear="0 0 0.0023 0 0 0.0000054" /> <!--CCW-->
-		<motor name="motor2" site="thrust2" gear="0 0 0.0023 0 0 -0.0000054" /> <!--CW-->
-		<motor name="motor3" site="thrust3" gear="0 0 0.0023 0 0 0.0000054" /> <!--CCW-->
-		<motor name="motor4" site="thrust4" gear="0 0 0.0023 0 0 -0.0000054" /> <!--CW-->
+<!--		<motor name="motor1" site="thrust1" gear="0 0 0.0000093 0 0 0.00000036" ctrlrange="0 3904576"/> &lt;!&ndash;CCW&ndash;&gt;-->
+<!--		<motor name="motor2" site="thrust2" gear="0 0 0.0000093 0 0 -0.00000036" ctrlrange="0 3904576"/> &lt;!&ndash;CW&ndash;&gt;-->
+<!--		<motor name="motor3" site="thrust3" gear="0 0 0.0000093 0 0 0.00000036" ctrlrange="0 3904576"/> &lt;!&ndash;CCW&ndash;&gt;-->
+<!--		<motor name="motor4" site="thrust4" gear="0 0 0.0000093 0 0 -0.00000036" ctrlrange="0 3904576"/> &lt;!&ndash;CW&ndash;&gt;-->
+		<motor name="motor1" site="thrust1" gear="0 0 0.0000093 0 0 0.00000036" /> <!--CCW-->
+		<motor name="motor2" site="thrust2" gear="0 0 0.0000093 0 0 -0.00000036" /> <!--CW-->
+		<motor name="motor3" site="thrust3" gear="0 0 0.0000093 0 0 0.00000036" /> <!--CCW-->
+		<motor name="motor4" site="thrust4" gear="0 0 0.0000093 0 0 -0.00000036" /> <!--CW-->
 	</actuator>
-
 </mujoco>

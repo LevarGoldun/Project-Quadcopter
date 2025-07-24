@@ -60,7 +60,7 @@ viewer = mujoco.viewer.launch_passive(model, data)
 
 # ------------------------------------------Simulation setup------------------------------------------------------------
 # Sending to MATLAB simulation time step (from .xml file) and total simulation time
-simtime = 15  # [s]
+simtime = 8  # [s]
 timestep = str(model.opt.timestep)  # [s]
 
 timeData = {"SimTime": simtime, "TimeStep": timestep}
@@ -90,7 +90,8 @@ cam.lookat = [-0.0049, 0.4150, 2.1315]
 
 # ==========================================MAIN PROGRAM================================================================
 # Initialization
-data.ctrl[0:3 + 1] = (3 * 9.81) / 4 / 0.0023  # sila pro udrzeni kvadrokoptery, 4*k*n^2=Mg (p.s. celkova hmotnost 3 kg)
+data.ctrl[0:3 + 1] = (3 * 9.81) / 4 / 0.0000093
+# uhlova rychlost pro udrzeni kvadrokoptery, 4*k*w^2=Mg (p.s. celkova hmotnost 3 kg)
 
 try:
     while viewer.is_running() and data.time < simtime+model.opt.timestep:
@@ -114,11 +115,11 @@ try:
         client_socket.sendall(json_data_to_send.encode('utf-8'))
 
         # Receive data from MATLAB
-        print("Wait get")
+        # print("Wait get")
         get = client_socket.recv(1024)
         if get:
             json_str = json.loads(get.decode('utf-8'))
-            m_square = json_str['Rotor_RPS_square']
+            m_square = json_str['Rotor_AngVel_square']
             data.ctrl = [m_square[0], m_square[1], m_square[2], m_square[3]]
 
             # STEP the simulation
