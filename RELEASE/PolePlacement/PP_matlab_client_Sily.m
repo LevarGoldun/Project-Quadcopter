@@ -4,6 +4,7 @@
 % Verze pro rizeni Pole Placement, VERZE SILA A MOMENTY
 
 % od 16.05 -> zmena poradi vymenu dat
+% od 12.07 -> drobna zmena kodu (asi finalni, pisu DP)
 
 %===================!!! Kontrola verze Simulink !!!========================
 v = version;
@@ -59,36 +60,29 @@ end
 % Pausa programu
 pauseT = 0;
 
-%--------------Nastaveni Luenbergerova pozorovatele------------------------
-load('../LinSystemMatrix.mat')
+%---------------------Nutne hodnoty parametru------------------------------
+run('../parametry_soustavy.m');
+load('../LinSystemMatrix.mat');
 Ac = LinSystem.Ac;
 Bc = LinSystem.Bc; % matice pro vstypy tahova sila/momenty
-Bmc = LinSystem.Bmc; % matice pro vstupy otacky^2 do KF 
+% Bmc = LinSystem.Bmc; % matice pro vstupy otacky^2 do KF 
 Cc = LinSystem.Cc;
 Dc = LinSystem.Dc;
-
-l = 0.2051; %[m] polovicni delka kvadrokoptery (rameno od hmotneho bodu)
-k_thrust = 2.3e-3; % koeficient umernosti pro generovani tahove sily
-b_moment = 5.4e-6; % koeficient umernosti odporoveho momentu vrtule
-
-% Pracovni bod pro linearni state-space (v pozorovateli)
-M = 2;
-m = 1;
-g = 9.81;
-% Rovnovazna poloha
-Xs_p = [0;0;0; 0;0;0; 0;0; 0;0;0; 0;0;0; 0;0];
-Us_p = [(M+m)*g; 0; 0; 0];
 %--------------------------------------------------------------------------
 
-
 %---------------------Koeficienty stavoveho regulatoru---------------------
+% nutne zvolit sadu polu
+index = 'smo'; % plynula
+% index = 'agr'; % agresivni
+disp("Zvolena sada polu: "+index)
+
 run("PP_koeficienty.m")
 % pocatecni honoty integratoru pro integracni cleny v pp=[0;0;2]
-xss=[0;0;2;0;0;0;0;0;0;0;0;0;0;0;0;0];
+xss=Xs_p;
 uss = Us_p;
 % ussm = Ums_p;
 
-init_int_ref = -ki\(kp*xss+uss); % pro vstup sily a momenty
+init_int_ref = -Ki\(Kp*xss+uss); % pro vstup sily a momenty
 set_param([smfn,'/Integrator_ref'],'InitialCondition', mat2str(init_int_ref));
 %--------------------------------------------------------------------------
 
@@ -111,6 +105,7 @@ pause(0.5)
 
 %======================HLAVNI PROGRAM======================================
 time=0;
+tic
 try
     while true && time<simtime
         % tic
@@ -136,7 +131,7 @@ try
                     set_param([smfn,'/DronRotM'],'Value', mat2str(DronRotM))
                     set_param([smfn,'/PendRotM'],'Value', mat2str(PendRotM))
                     set_param([smfn,'/DronPos'],'Value', mat2str(DronPos))
-                    set_param([smfn,'/PendPos'],'Value', mat2str(PendPos))
+                    % set_param([smfn,'/PendPos'],'Value', mat2str(PendPos))
                     
                      % run the simulink model for ONE STEP
                     if time == 0
@@ -154,10 +149,10 @@ try
         end
 
         % Vystupni data z Simulink
-        Rotor_RPS_square = out.Rotor_RPS_square(end,:);
+        Rotor_AngVel_square = out.Rotor_AngVel_square(:,end);
 
         % Send data to Python
-        data_to_send = struct('Rotor_RPS_square', Rotor_RPS_square);
+        data_to_send = struct('Rotor_AngVel_square', Rotor_AngVel_square);
         json_str_send = jsonencode(data_to_send);
         send = unicode2native(json_str_send, 'UTF-8');
         write(tcpObj, send, 'uint8');
@@ -172,6 +167,7 @@ catch exception
 end
 disp("Konec zpracovani")
 %======================KONEC HLAVNIHO PROGRAMU=============================
+disp("Cas behu programu: "+num2str(toc)+" s")
 
 %%
 % Smazani komunikace a zastaveni Simulink
@@ -187,11 +183,3 @@ function isValid = isValidJSON(str)
         isValid = false;
     end
 end
-
- % Kontrola stavu Simulink v pripade preruseni
-%  function SimStatus(smfn)    
-%     modelState = get_param(smfn, 'SimulationStatus');
-%     if strcmp(modelState, 'stopped') || strcmp(modelState, 'terminated')
-%         disp('Simulink model is stopped or closed. Cycle interrupted.');
-%     end
-% end
