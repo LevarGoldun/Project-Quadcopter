@@ -3,12 +3,14 @@
 % Synchronni komunikace
 % Verze pro Kaskadovou regulaci. Neni zpetna vazba pro zavazi !!!
 
+% 06.07.2025 -> verze 2 s trochu upravenym kodem
+
 %===================!!! Kontrola verze Simulink !!!========================
 v = version;
 if contains(v, 'R2024a')
-    simulink_file_name = 'CascadePID_sim_v1_2024a'; %verze 2024a    
+    simulink_file_name = 'old_CascadePID_sim_v1_2024a'; %verze 2024a    
 elseif contains(v, 'R2024b')
-    simulink_file_name = 'CascadePID_sim_v1'; %verze 2024b (autor)
+    simulink_file_name = 'old_CascadePID_sim_v1'; %verze 2024b (autor)
 else
     disp('Save the file async_simulink_control_client.slx to your version')
 end
