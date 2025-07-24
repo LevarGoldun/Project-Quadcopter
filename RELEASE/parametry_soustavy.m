@@ -37,13 +37,9 @@ A = 0.3919; % nespravna, ale tlumi
 T = 0.8682;
 
 %% Inicializace
-xyz_init = [0; 0; 2]; %pp poloha [m]
-uhly_init = [0; 0; 0]; %pp orientace [rad]
-zavazi_init = [0; 0]; %pp alpha a beta zavazi [rad]
-
-xyz_dot_init = [0;0;0];
-uhly_dot_init = [0;0;0];
-zavazi_dot_init = [0;0];
+xyz_init = [0; 0; 0]; %pp poloha dx dy dz [m]
+uhly_init = [0; 0; 0]; %pp orientace droll, dpitch, dyaw [rad]
+zavazi_init = [0; 0]; %pp dalpha a dbeta zavazi [rad]
 
 Xinit_matrix = [xyz_init; uhly_init; zavazi_init]; % pro maticovy tvar
 Xinit_ss = [Xinit_matrix; [0 0 0 0 0 0 0 0]']; % pro state-space
@@ -58,3 +54,7 @@ Us_p = [(M+m)*g; 0; 0; 0];
 % pro rovnovaznou polohu
 w_square = (M+m)*g/(4*k_thrust); % je to hodnota (rad/s)^2 !!!
 Uws_p = [w_square; w_square; w_square; w_square];
+
+% P.S.
+% wmax = 1976 rad/s -> 3904576 (rad/s)^2
+% wklid = 889 rad/s
