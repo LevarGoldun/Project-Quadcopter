@@ -305,8 +305,8 @@ L_obs = place(Ac', Cc', poles_obs)';
 % sada = "ChatGPT Мягкий, экономичный контроль";
 % sada = "ChatGPT Сбалансированный";
 % sada = "ChatGPT Жёсткий контроль";
-% sada = "DP. Vice sledovani polohy";
-sada = "DP.  Mensi paliva";
+sada = "DP. Vice sledovani polohy";
+% sada = "DP.  Mensi paliva";
 
 if sada == "Brysonovo pravidlo"
     disp("--> Vysledky pro sadu 'Brysonovo pravidlo'")

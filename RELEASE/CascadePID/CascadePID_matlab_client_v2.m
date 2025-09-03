@@ -4,6 +4,9 @@
 % Verze pro Kaskadovou regulaci. Neni zpetna vazba pro zavazi !!!
 
 % 06.07.2025 -> verze 2 s trochu upravenym kodem
+% 26.07.2025 -> nahrazeni set_param([smfn,'/time'],'Value', num2str(time))
+% a dalsich prikazu primym ctenim probennych z Workspace
+% -> rychlejsi simulace
 
 %===================!!! Kontrola verze Simulink !!!========================
 v = version;
@@ -66,12 +69,13 @@ run('../parametry_soustavy.m');
 
 % Nastavujeme 'Fixed-step size' v Simulink a metodu reseni
 set_param(gcs,'SolverType','Fixed-step','FixedStep',num2str(timestep))
-set_param(gcs,'Solver','ode4') % Runge-Kutta
-% set_param(gcs,'Solver','ode1') % Euler
+% set_param(gcs,'Solver','ode4') % Runge-Kutta
+set_param(gcs,'Solver','ode1') % Euler
 
 % Nastavujeme 'Stop Time' v Simulink a pocatecni cas v bloku
 set_param(gcs,'StopTime', num2str(simtime))
-set_param([smfn,'/time'],'Value', '0')
+% set_param([smfn,'/time'],'Value', '0')
+time=0;
 
 % !!! TOHLE JE KLICOVA VEC PRO POUZITI SIMULINK !!!
 % start simulation and pause simulation, waiting for signal from python
@@ -83,8 +87,6 @@ pause(0.5)
 
 %======================HLAVNI PROGRAM======================================
 tic
-time=0;
-time_matrix = [];
 try
     while true && time<simtime
         % tic
@@ -105,7 +107,6 @@ try
                     data = jsondecode(json_str);
 
                     time = data.SimulationTime;
-                    time_matrix = [time_matrix; time];
                     DronPos = data.DronPos;
                     PendPos = data.PendPos;
 
@@ -113,11 +114,12 @@ try
                     PendRotM = transpose(reshape(data.PendRotM, 3, 3));
                     
                     % set parameter in the simulink model using the data from python
-                    set_param([smfn,'/time'],'Value', num2str(time))
-                    set_param([smfn,'/DronRotM'],'Value', mat2str(DronRotM))
-                    set_param([smfn,'/PendRotM'],'Value', mat2str(PendRotM))
-                    set_param([smfn,'/DronPos'],'Value', mat2str(DronPos))
+                    % set_param([smfn,'/time'],'Value', num2str(time))
+                    % set_param([smfn,'/DronRotM'],'Value', mat2str(DronRotM))
+                    % set_param([smfn,'/PendRotM'],'Value', mat2str(PendRotM))
+                    % set_param([smfn,'/DronPos'],'Value', mat2str(DronPos))
                     % set_param([smfn,'/PendPos'],'Value', mat2str(PendPos))
+                    % -> uz nepotrebuju
                     
                     % run the simulink model for ONE STEP
                     if time == 0
@@ -136,9 +138,16 @@ try
 
         % Vystupni data z Simulink
         Rotor_AngVel_square = out.Rotor_AngVel_square(end,:);
+        dron_angles = rad2deg(out.dron_angles.Data(end, :));
+        pend_angles = rad2deg(out.pend_angles.data(end, :));
+        ref_xyz = out.ref.Data(:, end)';
         
         % Send data to Python
-        data_to_send = struct('Rotor_AngVel_square', Rotor_AngVel_square);
+        data_to_send = struct('Rotor_AngVel_square', Rotor_AngVel_square, ...
+            'dron_angles', dron_angles, ...
+            'pend_angles', pend_angles,...
+            'ref_xyz', ref_xyz);
+        
         json_str_send = jsonencode(data_to_send);
         send = unicode2native(json_str_send, 'UTF-8');
         write(tcpObj, send, 'uint8');

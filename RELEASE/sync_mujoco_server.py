@@ -32,6 +32,16 @@ def sensor_data_by_name(mj_model, mj_data, sensor_name):
     # Delka dat ze senzoru
     sensor_dim = mj_model.sensor_dim[sensor_id]
     return mj_data.sensordata[sensor_adr:sensor_adr + sensor_dim].copy()
+
+
+def update_T_vector(model, site_name, value):
+    site_id = mj.mj_name2id(model, mj.mjtObj.mjOBJ_SITE, site_name)
+    norm_w = max(0.0, min(value / 3904576, 1.0))
+    y2 = norm_w * (-0.5)
+    # model.site_fromto[site_id] = [0, 0, -0.29, 0, y2, -0.29]
+    print(model.site_fromto.shape)
+
+
 # ========================================KONEC POMOCNE FUNKCE==========================================================
 
 
@@ -60,7 +70,7 @@ viewer = mujoco.viewer.launch_passive(model, data)
 
 # ------------------------------------------Simulation setup------------------------------------------------------------
 # Sending to MATLAB simulation time step (from .xml file) and total simulation time
-simtime = 8  # [s]
+simtime = 0.5  # [s]
 timestep = str(model.opt.timestep)  # [s]
 
 timeData = {"SimTime": simtime, "TimeStep": timestep}
@@ -121,6 +131,9 @@ try:
             json_str = json.loads(get.decode('utf-8'))
             m_square = json_str['Rotor_AngVel_square']
             data.ctrl = [m_square[0], m_square[1], m_square[2], m_square[3]]
+
+            # Changing vector length (not working)
+            # update_T_vector(model, "T_vektor1", m_square[1])
 
             # STEP the simulation
             with viewer.lock():

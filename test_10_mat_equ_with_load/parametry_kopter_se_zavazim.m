@@ -39,14 +39,20 @@ k_thrust = 9.3e-6; %[N/(rad/s)^2]
 b_moment = 3.6e-7;
 
 % hodnoty pro obycejny ZV shaper
-% A = 0.3919; % nespravna, ale tlumi
-A = 0.6081; % spravna, ale spatne tlumi (v DP tohle)
+A = 0.3919; % nespravna, ale tlumi
+% A = 0.6081; % spravna, ale spatne tlumi (v DP tohle)
 T = 0.8682;
+
+% hodnoty pro ZV pro F_pitch_cmd BEZ SATURACE
+% A = 0.6081;
+% T = 0.8682;
+% % no je to stejne...
+
 %% Inicializace
 % pp poloha, orientace a vychyleni zavazi -> lze menit v blizkosti Xs, Us
 xyz_init = [0; 0; 0]; %pp poloha
 uhly_init = [0; 0; 0]; %pp orientace
-zavazi_init = [10*pi/180*0; 15*pi/180*0]; %pp alpha a beta zavazi
+zavazi_init = [30*pi/180*0; 0]; %pp alpha a beta zavazi
 
 xyz_dot_init = [0;0;0];
 uhly_dot_init = [0;0;0];

@@ -3,7 +3,11 @@
 % Synchronni komunikace
 % Verze pro rizeni pomoci LQR, VERZE SILA A MOMENTY
 
-% od 16.05 -> zmena poradi vymenu dat; 
+% od 16.05 -> zmena poradi vymenu dat;
+% od 25.07 -> drobna zmena kodu (asi finalni, pisu DP)
+% od 26.07 -> nahrazeni set_param([smfn,'/time'],'Value', num2str(time))
+% a dalsich prikazu primym ctenim probennych z Workspace
+% -> rychlejsi simulace
 
 %===================!!! Kontrola verze Simulink !!!========================
 v = version;
@@ -59,54 +63,39 @@ end
 % Pausa programu
 pauseT = 0;
 
-%---------------------Nastaveni Kalmanova filtru---------------------------
-load('../LinSystemMatrix.mat')
+%---------------------Nutne hodnoty parametru------------------------------
+run('../parametry_soustavy.m');
+load('../LinSystemMatrix.mat');
 Ac = LinSystem.Ac;
-Bc = LinSystem.Bc;
-Bmc = LinSystem.Bmc; % matice pro vstupy otacky^2 do KF
+Bc = LinSystem.Bc; % matice pro vstypy tahova sila/momenty
+% Bmc = LinSystem.Bmc; % matice pro vstupy otacky^2 do KF
 Cc = LinSystem.Cc;
 Dc = LinSystem.Dc;
-
-
-% Kovariance sumu procesu
-Q = 1e-3;
-% Kovariance sumu mereni
-R = 1e-4;
-% Sampling time
-Ts = timestep; %[s]
-
-l = 0.2051; %[m] polovicni delka kvadrokoptery (rameno od hmotneho bodu)
-k_thrust = 2.3e-3; % koeficient umernosti pro generovani tahove sily
-b_moment = 5.4e-6; % koeficient umernosti odporoveho momentu vrtule
-
-% Pracovni bod pro linearni state-space (v Kalmanovem filtru)
-M = 2;
-m = 1;
-g = 9.81;
-
-Xs_p = [0;0;0; 0;0;0; 0;0; 0;0;0; 0;0;0; 0;0];
-Us_p = [(M+m)*g; 0; 0; 0];
 %--------------------------------------------------------------------------
 
+%-------------------------Matice LQR a matice KF---------------------------
+% nutne zvolit sadu matic Q a R
+index = "Sledovani polohy";
+% index = "Mene paliva";
+disp("Zvolene nastaveni LQR: "+index)
 
-%-------------------------Koeficienty LQR----------------------------------
-run("LQR_koeficienty.m")
+run("LQR_koeficienty.m") % -> Ki_lqr a Kp_lqr pro stavovu zpetnu vazbu
+
 % pocatecni honoty integratoru pro integracni cleny v pp=[0;0;2]
-xss=[0;0;2;0;0;0;0;0;0;0;0;0;0;0;0;0];
-uss = Us_p;
-
-init_int_ref = -ki_lqr\(kp_lqr*xss+uss); % pro vstup sily a momenty
-set_param([smfn,'/Integrator_ref'],'InitialCondition', mat2str(init_int_ref));
+init_int_dref = -Ki_lqr\((Uinit-Us)+Kp_lqr*(Xinit_ss-Xs)); % pro vstup sily a momenty
+% set_param([smfn,'/Integrator_ref'],'InitialCondition', mat2str(init_int_dref));
+% --> primo do bloku integratoru
 %--------------------------------------------------------------------------
 
 % Nastavujeme 'Fixed-step size' v Simulink a metodu reseni
 set_param(gcs,'SolverType','Fixed-step','FixedStep',num2str(timestep))
-% set_param(gcs,'Solver','ode4') % Runge-Kutta
+set_param(gcs,'Solver','ode4') % Runge-Kutta
 % set_param(gcs,'Solver','ode1') % Euler
 
 % Nastavujeme 'Stop Time' v Simulink a pocatecni cas v bloku
 set_param(gcs,'StopTime', num2str(simtime))
-set_param([smfn,'/time'],'Value', '0')
+time = 0; % promenna casu simulace z MuJoCo
+% set_param([smfn,'/time'],'Value', '0')
 
 % !!! TOHLE JE KLICOVA VEC PRO POUZITI SIMULINK !!!
 % start simulation and pause simulation, waiting for signal from python
@@ -117,7 +106,7 @@ pause(0.5)
 
 
 %======================HLAVNI PROGRAM======================================
-time=0;
+tic
 try
     while true && time<simtime
         % tic
@@ -141,16 +130,19 @@ try
                     % Немного гемор с системами отсчета, но вкратце блок в
                     % симулинк требует систему NED, в mujoco другое,
                     % поэтому меняю знаки
-                    imuAccel = [data.imuAccel(1), -data.imuAccel(2), -data.imuAccel(3)];
-                    imuGyro = [data.imuGyro(1), -data.imuGyro(2), -data.imuGyro(3)];
-                    imuMag = [data.imuMag(1), -data.imuMag(2), -data.imuMag(3)];
+                    % imuAccel = [data.imuAccel(1), -data.imuAccel(2), -data.imuAccel(3)];
+                    % imuGyro = [data.imuGyro(1), -data.imuGyro(2), -data.imuGyro(3)];
+                    % imuMag = [data.imuMag(1), -data.imuMag(2), -data.imuMag(3)];
                     
                     % set parameter in the simulink model using the data from python
-                    set_param([smfn,'/time'],'Value', num2str(time))
-                    set_param([smfn,'/DronRotM'],'Value', mat2str(DronRotM))
-                    set_param([smfn,'/PendRotM'],'Value', mat2str(PendRotM))
-                    set_param([smfn,'/DronPos'],'Value', mat2str(DronPos))
-                    set_param([smfn,'/PendPos'],'Value', mat2str(PendPos))
+                    % set_param([smfn,'/time'],'Value', num2str(time))
+                    % set_param([smfn,'/DronRotM'],'Value', mat2str(DronRotM))
+                    % set_param([smfn,'/PendRotM'],'Value', mat2str(PendRotM))
+                    % set_param([smfn,'/DronPos'],'Value', mat2str(DronPos))
+                    % set_param([smfn,'/PendPos'],'Value', mat2str(PendPos))
+                    % --> Nepotrebuju. Ted mam primy pristup k Workspace
+                    % a promennym time, DronPos atd pomoci 
+                    % Interpreted Matlab Function
 
                     % nastaveni dat pro sensor fusion
                     % set_param([smfn,'/imuAccel'],'Value', mat2str(imuAccel))
@@ -173,10 +165,17 @@ try
         end
 
         % Vystupni data z Simulink
-        Rotor_RPS_square = out.Rotor_RPS_square(end,:);
+        Rotor_AngVel_square = out.Rotor_AngVel_square(:,end);
+        dron_angles = rad2deg(out.dron_angles.Data(end, :));
+        pend_angles = rad2deg(out.pend_angles.data(end, :));
+        ref_xyz = out.ref.Data(:,end)';
         
         % Send data to Python
-        data_to_send = struct('Rotor_RPS_square', Rotor_RPS_square);
+        data_to_send = struct('Rotor_AngVel_square', Rotor_AngVel_square, ...
+            'dron_angles', dron_angles, ...
+            'pend_angles', pend_angles, ...
+            'ref_xyz', ref_xyz);
+        
         json_str_send = jsonencode(data_to_send);
         send = unicode2native(json_str_send, 'UTF-8');
         write(tcpObj, send, 'uint8');
@@ -191,6 +190,7 @@ catch exception
 end
 disp("Konec zpracovani")
 %======================KONEC HLAVNIHO PROGRAMU=============================
+disp("Cas behu programu: "+num2str(toc)+" s")
 
 %%
 % Smazani komunikace a zastaveni Simulink
